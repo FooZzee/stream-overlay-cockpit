@@ -1,9 +1,9 @@
-# 🚛 ETS2 / ATS Stream Overlay Cockpit v0.0.1
+# 🚛 ETS2 / ATS Stream Overlay Cockpit v0.0.2
 
-> **ETS2 / ATS Stream Overlay Cockpit v0.0.1**  
+> **ETS2 / ATS Stream Overlay Cockpit v0.0.2**  
 > Автономный оверлей приборной панели тягача и нативный плагин телеметрии SCS SDK 1.16 для OBS Studio.
 
-[![Версия](https://img.shields.io/badge/Версия-v0.0.1-brightgreen?style=flat)](https://github.com/FooZzee/ets2-ats-stream-overlay/releases)
+[![Версия](https://img.shields.io/badge/Версия-v0.0.2-brightgreen?style=flat)](https://github.com/FooZzee/ets2-ats-stream-overlay/releases)
 [![Платформа](https://img.shields.io/badge/Платформа-Windows_x64-blue?style=flat)](https://www.microsoft.com/windows)
 [![SCS SDK](https://img.shields.io/badge/SCS_SDK-v1.16-orange?style=flat)](https://modding.scssoft.com/wiki/Documentation/Tools/Telemetry_server)
 [![OBS Studio](https://img.shields.io/badge/OBS_Studio-28%2B-5c5cf0?style=flat)](https://obsproject.com/)
@@ -75,8 +75,8 @@ Local\FooZzeeSCSTelemetry"| C["udp-bridge.ps1
 
 ### Шаг 3. Добавление оверлея в OBS Studio
 1. В OBS Studio в списке источников вашей сцены нажмите **«+»** и выберите **«Браузер»**.
-2. Установите флажок **«Локальный файл»** и укажите путь:  
-   `C:\Stream_Overlay_Cockpit\ets2-desktop.html`
+2. В настройках источника «Браузер» **НЕ ставьте** галочку «Локальный файл» (иначе не будут работать URL-параметры пропорций камеры). Вставьте путь к файлу прямо в обычное поле **URL**:  
+   `C:\Stream_Overlay_Cockpit\ets2-desktop.html` (или с параметром `?cam=4x3` / `?cam=16x9`).
 3. Задайте разрешение:
    * Ширина: **`1920`**
    * Высота: **`1080`**

@@ -55,7 +55,7 @@ if (-not (Test-Path (Join-Path $SourceRoot 'ets2-desktop.html'))) {
     }
 }
 $RedistDll  = Join-Path $SourceRoot 'redist\overlayobs_foozzee_telemetry.dll'
-$TARGET_VER = '0.0.1'
+$TARGET_VER = '0.0.2'
 
 # 5. Определение языка системы по умолчанию
 $DefaultLang = if ([System.Globalization.CultureInfo]::CurrentUICulture.TwoLetterISOLanguageName -eq 'ru') { 'ru' } else { 'en' }
@@ -131,9 +131,9 @@ $Strings = @{
         StatusDaOk        = "Configured [OK]"
         StatusDaSkipped   = "Skipped (can be added later in config.js)"
         DoneObsHeader     = "OBS STUDIO CONFIGURATION & LAUNCH"
-        DoneObsBody       = "• Desktop Browser Source: 1920x1080 -> ets2-desktop.html`r`n• Webcam Source (4:3): 325x244 px @ 1080p | 397x298 px @ 1440p (layer below overlay)`r`n• Launch 'ETS2-ATS Overlay Bridge' (start-telemetry.bat) before starting your stream."
-        DoneObsBody4x3    = "• Desktop Browser Source: 1920x1080 -> ets2-desktop.html`r`n• Webcam Source (4:3): 325x244 px @ 1080p | 397x298 px @ 1440p (layer below overlay)`r`n• Launch 'ETS2-ATS Overlay Bridge' (start-telemetry.bat) before starting your stream."
-        DoneObsBody16x9   = "• Desktop Browser Source: 1920x1080 -> ets2-desktop.html`r`n• Webcam Source (16:9): 384x216 px @ 1080p | 464x261 px @ 1440p (layer below overlay)`r`n• Launch 'ETS2-ATS Overlay Bridge' (start-telemetry.bat) before starting your stream."
+        DoneObsBody       = "• In 'Browser' source properties, DO NOT check 'Local file' (so URL aspect ratio parameters work). Paste the path directly into the URL field: {0}\ets2-desktop.html (or with ?cam=4x3 / ?cam=16x9)`r`n• Webcam Source (4:3): 325x244 px @ 1080p | 397x298 px @ 1440p (layer below overlay)`r`n• Launch 'ETS2-ATS Overlay Bridge' (start-telemetry.bat) before starting your stream."
+        DoneObsBody4x3    = "• In 'Browser' source properties, DO NOT check 'Local file' (so URL aspect ratio parameters work). Paste the path directly into the URL field: {0}\ets2-desktop.html (or with ?cam=4x3)`r`n• Webcam Source (4:3): 325x244 px @ 1080p | 397x298 px @ 1440p (layer below overlay)`r`n• Launch 'ETS2-ATS Overlay Bridge' (start-telemetry.bat) before starting your stream."
+        DoneObsBody16x9   = "• In 'Browser' source properties, DO NOT check 'Local file' (so URL aspect ratio parameters work). Paste the path directly into the URL field: {0}\ets2-desktop.html?cam=16x9`r`n• Webcam Source (16:9): 384x216 px @ 1080p | 464x261 px @ 1440p (layer below overlay)`r`n• Launch 'ETS2-ATS Overlay Bridge' (start-telemetry.bat) before starting your stream."
         BtnFinishClose    = "Finish & Close"
         DocChangelogTitle = "ETS2 / ATS Stream Overlay Cockpit — Version History"
         DocCommandsTitle  = "ETS2 / ATS Stream Overlay Cockpit — Commands Reference"
@@ -209,9 +209,9 @@ $Strings = @{
         StatusDaOk        = "Настроено [OK]"
         StatusDaSkipped   = "Пропущено (можно добавить позже в config.js)"
         DoneObsHeader     = "ПАРАМЕТРЫ OBS STUDIO И ЗАПУСК"
-        DoneObsBody       = "• Desktop-сцена: 1920x1080 -> ets2-desktop.html`r`n• Веб-камера (4:3): 325x244 px @ 1080p | 397x298 px @ 1440p (слой ниже оверлея)`r`n• Перед стримом запустите ярлык 'ETS2-ATS Overlay Bridge' (start-telemetry.bat)."
-        DoneObsBody4x3    = "• Desktop-сцена: 1920x1080 -> ets2-desktop.html`r`n• Веб-камера (4:3): 325x244 px @ 1080p | 397x298 px @ 1440p (слой ниже оверлея)`r`n• Перед стримом запустите ярлык 'ETS2-ATS Overlay Bridge' (start-telemetry.bat)."
-        DoneObsBody16x9   = "• Desktop-сцена: 1920x1080 -> ets2-desktop.html`r`n• Веб-камера (16:9): 384x216 px @ 1080p | 464x261 px @ 1440p (слой ниже оверлея)`r`n• Перед стримом запустите ярлык 'ETS2-ATS Overlay Bridge' (start-telemetry.bat)."
+        DoneObsBody       = "• В настройках источника «Браузер» НЕ ставьте галочку «Локальный файл» (иначе не будут работать URL-параметры пропорций камеры). Вставьте путь в поле URL: {0}\ets2-desktop.html (или с ?cam=4x3 / ?cam=16x9)`r`n• Веб-камера (4:3): 325x244 px @ 1080p | 397x298 px @ 1440p (слой ниже оверлея)`r`n• Перед стримом запустите ярлык 'ETS2-ATS Overlay Bridge' (start-telemetry.bat)."
+        DoneObsBody4x3    = "• В настройках источника «Браузер» НЕ ставьте галочку «Локальный файл» (иначе не будут работать URL-параметры пропорций камеры). Вставьте путь в поле URL: {0}\ets2-desktop.html (или с ?cam=4x3)`r`n• Веб-камера (4:3): 325x244 px @ 1080p | 397x298 px @ 1440p (слой ниже оверлея)`r`n• Перед стримом запустите ярлык 'ETS2-ATS Overlay Bridge' (start-telemetry.bat)."
+        DoneObsBody16x9   = "• В настройках источника «Браузер» НЕ ставьте галочку «Локальный файл» (иначе не будут работать URL-параметры пропорций камеры). Вставьте путь в поле URL: {0}\ets2-desktop.html?cam=16x9`r`n• Веб-камера (16:9): 384x216 px @ 1080p | 464x261 px @ 1440p (слой ниже оверлея)`r`n• Перед стримом запустите ярлык 'ETS2-ATS Overlay Bridge' (start-telemetry.bat)."
         BtnFinishClose    = "Готово"
         DocChangelogTitle = "ETS2 / ATS Stream Overlay — История изменений"
         DocCommandsTitle  = "ETS2 / ATS Stream Overlay — Справочник команд"
@@ -373,7 +373,7 @@ function Copy-OverlayDirectory {
         'commands.md',
         'commands.en.md',
         'commands.ru.md',
-        'RELEASE_NOTES_v0.0.1.md',
+        'RELEASE_NOTES_v0.0.2.md',
         'LICENSE',
         '.gitignore'
     )
@@ -435,6 +435,12 @@ window.OVERLAY_CONFIG = {
 
   // Set true for verbose console diagnostics & ?test=1 mode
   debug: false,
+
+  // Auto-update checker via GitHub Releases
+  checkUpdates: true,
+  githubRepo: 'FooZzee/stream-overlay-cockpit',
+  githubUrl: 'https://github.com/FooZzee/stream-overlay-cockpit',
+  releasesApiUrl: 'https://api.github.com/repos/FooZzee/stream-overlay-cockpit/releases/latest',
 
   channels: {
     twitch: {
@@ -501,7 +507,7 @@ window.OVERLAY_CONFIG = {
     routeTag: 'ETS2 // ATS',
     routeText: '$escRoute',
     routeMeta: 'CRUISE',
-    checkUpdates: false,
+    checkUpdates: true,
     telemetryApi: {
       enabled: true,
       url: 'http://127.0.0.1:30002/telemetry',
@@ -978,7 +984,7 @@ $xaml = @"
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBlock x:Name="txtHeaderTitle" Text="ETS2 / ATS STREAM OVERLAY COCKPIT" FontWeight="Bold" FontSize="15" Foreground="#f59e0b" VerticalAlignment="Center"/>
                         <Border Background="#2a1d08" BorderBrush="#f59e0b" BorderThickness="1" CornerRadius="6" Padding="6,1" Margin="10,0,0,0" VerticalAlignment="Center">
-                            <TextBlock x:Name="txtBadgeVer" Text="v0.0.1" FontWeight="Bold" FontSize="11" Foreground="#fbbf24"/>
+                            <TextBlock x:Name="txtBadgeVer" Text="v0.0.2" FontWeight="Bold" FontSize="11" Foreground="#fbbf24"/>
                         </Border>
                     </StackPanel>
                     <TextBlock x:Name="txtHeaderSub" Text="2-Row Cockpit HUD • Native SCS SDK 1.16 Telemetry • Twitch Chat &amp; Alerts" FontSize="11" Foreground="#94a3b8" Margin="0,2,0,0"/>
@@ -1202,7 +1208,7 @@ $xaml = @"
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <TextBlock x:Name="txtFooterVer" Grid.Column="0" Text="Версия пакета: v0.0.1" FontSize="10.5" Foreground="#f59e0b"/>
+            <TextBlock x:Name="txtFooterVer" Grid.Column="0" Text="Версия пакета: v0.0.2" FontSize="10.5" Foreground="#f59e0b"/>
             <TextBlock x:Name="txtFooterObs" Grid.Column="1" Text="OBS Desktop: 1920x1080 (ets2-desktop.html) • Камера: 325x244 px (4:3)" FontSize="10.5" Foreground="#64748b"/>
         </Grid>
     </Grid>
@@ -1970,7 +1976,8 @@ $btnInstall.Add_Click({
         }
 
         # Отчёт об успешной установке
-        $obsBodyText = if ($selectedAspect -eq '16:9') { Get-Text 'DoneObsBody16x9' } else { Get-Text 'DoneObsBody4x3' }
+        $obsRawTemplate = if ($selectedAspect -eq '16:9') { Get-Text 'DoneObsBody16x9' } else { Get-Text 'DoneObsBody4x3' }
+        $obsBodyText = [string]::Format([string]$obsRawTemplate, $instDir)
         $resMsg = @"
 $([string](Get-Text 'DoneHeader'))
 $([string](Get-Text 'DoneSub'))

@@ -1,9 +1,9 @@
-# 🚛 ETS2 / ATS Stream Overlay Cockpit v0.0.1
+# 🚛 ETS2 / ATS Stream Overlay Cockpit v0.0.2
 
-> **ETS2 / ATS Stream Overlay Cockpit v0.0.1**  
+> **ETS2 / ATS Stream Overlay Cockpit v0.0.2**  
 > Standalone Truck Cockpit HUD Stream Overlay & Native SCS SDK 1.16 Telemetry Plugin for OBS Studio.
 
-[![Release](https://img.shields.io/badge/Release-v0.0.1-brightgreen?style=flat)](https://github.com/FooZzee/ets2-ats-stream-overlay/releases)
+[![Release](https://img.shields.io/badge/Release-v0.0.2-brightgreen?style=flat)](https://github.com/FooZzee/ets2-ats-stream-overlay/releases)
 [![Platform](https://img.shields.io/badge/Platform-Windows_x64-blue?style=flat)](https://www.microsoft.com/windows)
 [![SCS SDK](https://img.shields.io/badge/SCS_SDK-v1.16-orange?style=flat)](https://modding.scssoft.com/wiki/Documentation/Tools/Telemetry_server)
 [![OBS Studio](https://img.shields.io/badge/OBS_Studio-28%2B-5c5cf0?style=flat)](https://obsproject.com/)
@@ -75,8 +75,8 @@ Before going live, start the **«ETS2-ATS Overlay Bridge»** shortcut on your De
 
 ### Step 3. Add Overlay to OBS Studio
 1. In OBS Studio, add a new **«Browser»** source to your scene.
-2. Check **«Local file»** and select:  
-   `C:\Stream_Overlay_Cockpit\ets2-desktop.html`
+2. In the "Browser" source properties, **DO NOT** check "Local file" (otherwise webcam aspect ratio query parameters will not work). Paste the file path directly into the standard **URL** field:  
+   `C:\Stream_Overlay_Cockpit\ets2-desktop.html` (or with `?cam=4x3` / `?cam=16x9`).
 3. Set canvas dimensions:
    * Width: **`1920`**
    * Height: **`1080`**

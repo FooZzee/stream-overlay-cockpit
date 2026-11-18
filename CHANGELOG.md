@@ -1,11 +1,20 @@
 # 📜 Version History (Changelog) — ETS2 / ATS Stream Overlay Cockpit
 
-> **ETS2 / ATS Stream Overlay Cockpit v0.0.1**  
+> **ETS2 / ATS Stream Overlay Cockpit v0.0.2**  
 > Dual-language release documentation (English / Русский).
 
 ---
 
 ## 🇬🇧 English Release Notes
+
+### [0.0.2] - 2026-11-19
+
+#### 🚀 Key Improvements & Highlights
+* **Corrected OBS Studio Browser Source Setup (Uncheck 'Local file'):** Path is entered directly into the URL field without checking 'Local file' to preserve query parameters.
+* **Automatic Update Checking Enabled by Default (`checkUpdates: true`):** Background query against `FooZzee/stream-overlay-cockpit` GitHub API on startup, failing silently if network is unavailable or returns 404.
+* **Smart Pip-Boy 3000 Updater:** SemVer evaluation (`v0.0.2` vs `latest`), in-app extraction of `ETS2-ATS-Stream-Overlay-Cockpit-*.zip` with safe preservation of `config.js`.
+* **Repository Defaults:** Official GitHub repo pointers preset across configs and GUI installer.
+* **Version 0.0.2 Synchronization:** Unified version bump across all scripts, telemetry, and docs.
 
 ### [0.0.1] - 2026-11-19
 
@@ -23,6 +32,15 @@ First stable release of the flagship **ETS2 / ATS Stream Overlay Cockpit** serie
 ---
 
 ## 🇷🇺 Русское описание релиза
+
+### [0.0.2] - 2026-11-19
+
+#### 🚀 Главные нововведения и улучшения
+* **Исправление подключения в OBS Studio (без галочки «Локальный файл»):** Путь вводится напрямую в поле URL для гарантированной работы URL-параметров камеры.
+* **Автоматическая проверка обновлений (`checkUpdates: true`):** Проверка релизов GitHub при запуске оверлея с бесшумным выходом при 404 или отсутствии сети.
+* **Интеллектуальный Pip-Boy 3000 Updater:** Автоматическая загрузка архива `ETS2-ATS-Stream-Overlay-Cockpit-*.zip` с надёжным сохранением `config.js`.
+* **Параметры репозитория по умолчанию:** Привязка к `FooZzee/stream-overlay-cockpit` в шаблоне конфига и установщике.
+* **Версия v0.0.2:** Синхронное поднятие версии во всех модулях и документации проекта.
 
 ### [0.0.1] - 2026-11-19
 

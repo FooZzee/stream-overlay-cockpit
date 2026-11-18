@@ -1,6 +1,6 @@
 # 🎮 Commands & Developer API — ETS2 / ATS Stream Overlay Cockpit
 
-> **ETS2 / ATS Stream Overlay Cockpit v0.0.1**  
+> **ETS2 / ATS Stream Overlay Cockpit v0.0.2**  
 > Dual-language technical manual (English / Русский).
 
 ---

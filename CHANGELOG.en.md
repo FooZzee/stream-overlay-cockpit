@@ -1,7 +1,17 @@
 # 📜 Version History — ETS2 / ATS Stream Overlay Cockpit
 
-> **ETS2 / ATS Stream Overlay Cockpit v0.0.1**  
+> **ETS2 / ATS Stream Overlay Cockpit v0.0.2**  
 > Official release log and development history for the standalone truck cockpit HUD stream overlay designed for Euro Truck Simulator 2 and American Truck Simulator.
+
+## [0.0.2] - 2026-11-19
+
+### 🚀 Key Improvements & Highlights
+
+* **Corrected OBS Studio Browser Source Setup (Uncheck 'Local file'):** Updated docs and Setup Wizard — users must NOT check "Local file" in OBS Studio so webcam aspect ratio query parameters (`?cam=4x3` / `?cam=16x9`) pass through correctly. The path is pasted directly into the standard **URL** field.
+* **Automatic Update Checking Enabled by Default (`checkUpdates: true`):** Background check against the official GitHub Releases API (`FooZzee/stream-overlay-cockpit`) when the overlay starts in OBS Studio. Fails silently without console errors if offline or encountering HTTP 404.
+* **Smart Pip-Boy 3000 Auto-Updater:** Robust SemVer version comparison (`v0.0.2` vs `latest`), automatic download and extraction of `ETS2-ATS-Stream-Overlay-Cockpit-*.zip` release archives with **zero-risk preservation of user's personal `config.js`**.
+* **Repository Endpoint Synchronization:** Defaults configured in `config.example.js` and `Install-Overlay.bat` targeting `FooZzee/stream-overlay-cockpit`.
+* **Complete Project Version Alignment:** Comprehensive version alignment to `v0.0.2` across HTML tags, telemetry scripts, setup wizard, and updater UI.
 
 ## [0.0.1] - 2026-11-19
 

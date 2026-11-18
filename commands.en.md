@@ -1,6 +1,6 @@
 # 🎮 Interactive Commands & Developer API Reference
 
-> **ETS2 / ATS Stream Overlay Cockpit v0.0.1**  
+> **ETS2 / ATS Stream Overlay Cockpit v0.0.2**  
 > Complete technical reference for interactive chat commands, telemetry triggers, and developer console methods.
 
 ## 1. Interactive Chat Commands

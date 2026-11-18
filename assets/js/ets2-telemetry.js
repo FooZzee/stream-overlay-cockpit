@@ -11,7 +11,7 @@
   const { config, isTestMode, showGuides, escapeHtml, log } = app;
   const lang = app.lang === 'en' ? 'en' : 'ru';
 
-  const OVERLAY_VERSION = 'v0.0.1';
+  const OVERLAY_VERSION = 'v0.0.2';
   const UPDATE_CACHE_KEY = 'obs_overlay_update_cache';
   const UPDATE_CACHE_TTL_MS = 10800000; // 3 часа между запросами к GitHub API
 

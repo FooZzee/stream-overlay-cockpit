@@ -7,12 +7,16 @@
 
   const DEFAULT_CONFIG = {
     lang: 'ru',
-    debug: true,
-    checkUpdates: false,
+    debug: false,
+    version: 'v0.0.2',
+    checkUpdates: true,
+    githubRepo: 'FooZzee/stream-overlay-cockpit',
+    githubUrl: 'https://github.com/FooZzee/stream-overlay-cockpit',
+    releasesApiUrl: 'https://api.github.com/repos/FooZzee/stream-overlay-cockpit/releases/latest',
     channels: {
-      twitch: { enabled: true, channelName: 'foozzee', oauthToken: '', clientId: '' },
-      vk: { enabled: true, channelUrl: 'https://live.vkvideo.ru/foozzee', token: '' },
-      donationAlerts: { enabled: true, socketToken: 'CsNPR4wulOmEgXoMT4OT' },
+      twitch: { enabled: true, channelName: '', oauthToken: '', clientId: '' },
+      vk: { enabled: true, channelUrl: '', token: '' },
+      donationAlerts: { enabled: true, socketToken: '' },
       obsWebSocket: { enabled: false, url: 'ws://127.0.0.1:4455', password: '' }
     },
     alerts: {
@@ -55,7 +59,7 @@
       cbChannel: 'CB 19'
     },
     ets2: {
-      driverName: 'FooZzee',
+      driverName: 'STREAMER',
       routeTag: 'ETS2 // ATS',
       routeText: 'В РЕЙСЕ // ОНЛАЙН',
       routeMeta: 'CRUISE',

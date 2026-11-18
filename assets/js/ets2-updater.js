@@ -12,7 +12,7 @@
   'use strict';
 
   // 1. ТЕКУЩАЯ ВЕРСИЯ ОВЕРЛЕЯ И РЕПОЗИТОРИЙ
-  const CURRENT_VERSION = 'v0.0.1';
+  const CURRENT_VERSION = 'v0.0.2';
   const GITHUB_REPO = 'FooZzee/stream-overlay-cockpit';
   const API_URL = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
   const STORAGE_KEY_DISMISSED = 'ets2_overlay_dismissed_update';
@@ -390,7 +390,7 @@
           `- Stream-safe DonationAlerts configuration in graphical installer Install-Overlay.bat.`;
 
       setTimeout(() => {
-        showPipBoyModal('v1.2.0', sampleNotes, `https://github.com/${GITHUB_REPO}/releases/latest`);
+        showPipBoyModal('v0.0.3', sampleNotes, `https://github.com/${GITHUB_REPO}/releases/latest`);
       }, 800);
       return;
     }
@@ -441,7 +441,9 @@
         }, 1200);
       }
     } catch (err) {
-      console.warn('[PipBoy Updater] Could not check GitHub releases:', err);
+      if (window.ETS2Overlay && window.ETS2Overlay.isDebug) {
+        console.warn('[PipBoy Updater] Background check suppressed:', err);
+      }
     }
   }
 

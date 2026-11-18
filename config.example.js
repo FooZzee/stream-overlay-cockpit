@@ -1,10 +1,10 @@
 /**
- * Шаблон конфигурации ETS2 / ATS Stream Overlay Cockpit v0.0.1.
+ * Шаблон конфигурации ETS2 / ATS Stream Overlay Cockpit v0.0.2.
  * Скопируйте этот файл в config.js и заполните своими данными.
  */
 window.OVERLAY_CONFIG = {
   // Метка сборки оверлея
-  version: 'v0.0.1',
+  version: 'v0.0.2',
 
   // Язык интерфейса оверлея ('ru' | 'en')
   lang: 'ru',
@@ -13,7 +13,10 @@ window.OVERLAY_CONFIG = {
   debug: false,
 
   // Проверка обновлений оверлея на GitHub при запуске (отключено в экспериментальной сборке test_v0.0.1)
-  checkUpdates: false,
+  checkUpdates: true,
+  githubRepo: 'FooZzee/stream-overlay-cockpit',
+  githubUrl: 'https://github.com/FooZzee/stream-overlay-cockpit',
+  releasesApiUrl: 'https://api.github.com/repos/FooZzee/stream-overlay-cockpit/releases/latest',
 
   // Настройки каналов и подключений
   channels: {
