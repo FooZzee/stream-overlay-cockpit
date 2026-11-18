@@ -1,0 +1,21 @@
+# Runtime configuration with personal tokens / channel secrets
+config.js
+
+# Agent environment and local skills
+.agent/
+.agents/
+_tmp_skills/
+skills-lock.json
+
+# OS / Editor / Backup clutter
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.log
+*.tmp
+backups/
+_backup_*/
+_dist_*/
+scratch/
+.vscode/
+.idea/

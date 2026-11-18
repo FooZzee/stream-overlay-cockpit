@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ETS2 / ATS Stream Overlay Cockpit — v0.0.1</title>
+
+  <link rel="stylesheet" href="./assets/css/fonts.css">
+  <link rel="stylesheet" href="./assets/css/ets2-base.css">
+  <link rel="stylesheet" href="./assets/css/ets2-desktop.css">
+  <link rel="stylesheet" href="./assets/css/ets2-pipboy.css">
+</head>
+<body>
+  <main class="scene-desktop" aria-label="ETS2 / ATS Stream Overlay Cockpit v0.0.1">
+
+    <!-- 1. НИЖНЯЯ БЕГУЩАЯ СТРОКА (TELEMETRY NEWS TICKER — bottom: 0; left: 0; width: 100%) -->
+    <footer class="top-news-ticker is-offline" id="top-news-ticker" aria-label="Бортовой информационный тикер телеметрии">
+      <div class="top-ticker-anchor-left">
+        <span class="top-game-badge is-standby" id="game-badge">--</span>
+        <span class="top-status-pill is-standby" id="game-status-pill">
+          <span class="top-status-dot" aria-hidden="true"></span>
+          <span id="game-status-text" data-i18n="statusStandby">ОЖИДАНИЕ // ОФЛАЙН</span>
+        </span>
+      </div>
+
+      <div class="top-ticker-viewport">
+        <div class="top-ticker-track" id="top-ticker-track">
+          <!-- Копия 1 -->
+          <div class="top-ticker-copy">
+            <span class="top-ticker-item">
+              <span class="top-ticker-label" data-i18n="route">МАРШРУТ</span>
+              <span class="top-ticker-val top-ticker-val--bright" data-top-key="route">--</span>
+            </span>
+            <span class="top-ticker-sep" aria-hidden="true">◆</span>
+
+            <span class="top-ticker-item">
+              <span class="top-ticker-label" data-i18n="tickerRemDist">ОСТАЛОСЬ</span>
+              <span class="top-ticker-val top-ticker-val--cyan" data-top-key="navDist">--</span>
+            </span>
+            <span class="top-ticker-sep" aria-hidden="true">◆</span>
+
+            <span class="top-ticker-item">
+              <span class="top-ticker-label" data-i18n="cargoPrefix">ГРУЗ:</span>
+              <span class="top-ticker-val" data-top-key="cargo">--</span>
+            </span>
+            <span class="top-ticker-sep" aria-hidden="true">◆</span>
+
+            <span class="top-ticker-item">
+              <span class="top-ticker-label" data-i18n="tickerIncome">ОПЛАТА:</span>
+              <span class="top-ticker-val top-ticker-val--accent" data-ticker-key="income">--</span>
+            </span>
+            <span class="top-ticker-sep" aria-hidden="true">◆</span>
+
+            <span class="top-ticker-item">
+              <span class="top-ticker-label" data-i18n="tickerCompanies">КОМПАНИИ:</span>
+              <span class="top-ticker-val" data-ticker-key="companies">--</span>
+            </span>
+            <span class="top-ticker-sep" aria-hidden="true">◆</span>
+
+            <span class="top-ticker-item">
+              <span class="top-ticker-label" data-i18n="tickerJobType">ТИП ЗАКАЗА:</span>
+              <span class="top-ticker-val" data-ticker-key="jobType">--</span>
+            </span>
+            <span class="top-ticker-sep" aria-hidden="true">◆</span>
+
+            <span class="top-ticker-item">
+              <span class="top-ticker-label" data-i18n="tickerTripDist">ПРОЙДЕНО ЗА РЕЙС:</span>
+              <span class="top-ticker-val" data-ticker-key="driven">--</span>
+            </span>
+            <span class="top-ticker-sep" aria-hidden="true">◆</span>
+
+            <span class="top-ticker-item">
+              <span class="top-ticker-label" data-i18n="tickerFuelUsed">СОЖЖЕНО:</span>
+              <span class="top-ticker-val" data-ticker-key="liters">--</span>
+            </span>
+            <span class="top-ticker-sep" aria-hidden="true">◆</span>
+
+            <span class="top-ticker-item">
+              <span class="top-ticker-label" data-i18n="tickerTripAvg">СРЕДНИЙ РАСХОД:</span>
+              <span class="top-ticker-val" data-ticker-key="avg">--</span>
+            </span>
+            <span class="top-ticker-sep" aria-hidden="true">◆</span>
+
+            <span class="top-ticker-item">
+              <span class="top-ticker-label" data-i18n="tickerMaxSpeed">МАКС. СКОРОСТЬ:</span>
+              <span class="top-ticker-val" data-ticker-key="maxSpeed">--</span>
+            </span>
+            <span class="top-ticker-sep" aria-hidden="true">◆</span>
+          </div>
+
+          <!-- Копия 2 (идентичная копия для бесшовного скролла без сброса DOM) -->
+          <div class="top-ticker-copy" aria-hidden="true">
+            <span class="top-ticker-item">
+              <span class="top-ticker-label" data-i18n="route">МАРШРУТ</span>
+              <span class="top-ticker-val top-ticker-val--bright" data-top-key="route">--</span>
+            </span>
+            <span class="top-ticker-sep" aria-hidden="true">◆</span>
+
+            <span class="top-ticker-item">
+              <span class="top-ticker-label" data-i18n="tickerRemDist">ОСТАЛОСЬ</span>
+              <span class="top-ticker-val top-ticker-val--cyan" data-top-key="navDist">--</span>
+            </span>
+            <span class="top-ticker-sep" aria-hidden="true">◆</span>
+
+            <span class="top-ticker-item">
+              <span class="top-ticker-label" data-i18n="cargoPrefix">ГРУЗ:</span>
+              <span class="top-ticker-val" data-top-key="cargo">--</span>
+            </span>
+            <span class="top-ticker-sep" aria-hidden="true">◆</span>
+
+            <span class="top-ticker-item">
+              <span class="top-ticker-label" data-i18n="tickerIncome">ОПЛАТА:</span>
+              <span class="top-ticker-val top-ticker-val--accent" data-ticker-key="income">--</span>
+            </span>
+            <span class="top-ticker-sep" aria-hidden="true">◆</span>
+
+            <span class="top-ticker-item">
+              <span class="top-ticker-label" data-i18n="tickerCompanies">КОМПАНИИ:</span>
+              <span class="top-ticker-val" data-ticker-key="companies">--</span>
+            </span>
+            <span class="top-ticker-sep" aria-hidden="true">◆</span>
+
+            <span class="top-ticker-item">
+              <span class="top-ticker-label" data-i18n="tickerJobType">ТИП ЗАКАЗА:</span>
+              <span class="top-ticker-val" data-ticker-key="jobType">--</span>
+            </span>
+            <span class="top-ticker-sep" aria-hidden="true">◆</span>
+
+            <span class="top-ticker-item">
+              <span class="top-ticker-label" data-i18n="tickerTripDist">ПРОЙДЕНО ЗА РЕЙС:</span>
+              <span class="top-ticker-val" data-ticker-key="driven">--</span>
+            </span>
+            <span class="top-ticker-sep" aria-hidden="true">◆</span>
+
+            <span class="top-ticker-item">
+              <span class="top-ticker-label" data-i18n="tickerFuelUsed">СОЖЖЕНО:</span>
+              <span class="top-ticker-val" data-ticker-key="liters">--</span>
+            </span>
+            <span class="top-ticker-sep" aria-hidden="true">◆</span>
+
+            <span class="top-ticker-item">
+              <span class="top-ticker-label" data-i18n="tickerTripAvg">СРЕДНИЙ РАСХОД:</span>
+              <span class="top-ticker-val" data-ticker-key="avg">--</span>
+            </span>
+            <span class="top-ticker-sep" aria-hidden="true">◆</span>
+
+            <span class="top-ticker-item">
+              <span class="top-ticker-label" data-i18n="tickerMaxSpeed">МАКС. СКОРОСТЬ:</span>
+              <span class="top-ticker-val" data-ticker-key="maxSpeed">--</span>
+            </span>
+            <span class="top-ticker-sep" aria-hidden="true">◆</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="top-ticker-anchor-right">
+        <span class="top-version-pill">v0.0.1</span>
+      </div>
+    </footer>
+
+    <!-- 2. РАМКА ВЕБ-КАМЕРЫ (весь внешний контур строго 4:3: 325x244 @ 1080p, 397x298 @ 1440p) -->
+    <div class="cam-box" id="cam-box">
+      <div class="cam-video-viewport" aria-label="Область веб-камеры">
+        <span class="cam-corner cam-corner--tl" aria-hidden="true"></span>
+        <span class="cam-corner cam-corner--tr" aria-hidden="true"></span>
+        <span class="cam-corner cam-corner--bl" aria-hidden="true"></span>
+        <span class="cam-corner cam-corner--br" aria-hidden="true"></span>
+      </div>
+      <div class="cam-hud-bar cam-eta-bar is-offline" id="real-eta-panel" title="Маршрут не задан">
+        <div class="cam-eta-left">
+          <span class="status-led" aria-hidden="true"></span>
+          <svg class="cam-eta-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <circle cx="8" cy="8" r="6.2" stroke="currentColor" stroke-width="1.35"/>
+            <path d="M8 4.4V8.2L10.7 9.8" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="cam-eta-label" data-i18n="realEtaLabel">РЕАЛЬНОЕ ВРЕМЯ В ПУТИ:</span>
+        </div>
+        <span class="cam-eta-value" id="real-eta-value">--</span>
+      </div>
+    </div>
+
+    <!-- 3. БЛОК ЧАТА (справа от приборной панели, зазоры по 5px слева и справа, вровень с приборкой) -->
+    <section class="cockpit-chat-dock" aria-label="Чат трансляции">
+      <div class="cockpit-chat-shell">
+        <svg class="cockpit-chat-corner cockpit-chat-corner--tr" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M2 1.5H14.5V14" stroke="currentColor" stroke-width="1.6" stroke-linecap="square"/>
+        </svg>
+        <svg class="cockpit-chat-corner cockpit-chat-corner--bl" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M1.5 2V14.5H14" stroke="currentColor" stroke-width="1.6" stroke-linecap="square"/>
+        </svg>
+
+        <header class="cockpit-chat-bar">
+          <div class="cockpit-chat-title">
+            <span class="cockpit-chat-led" aria-hidden="true"></span>
+            <svg class="cockpit-chat-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M3 4.2A1.7 1.7 0 0 1 4.7 2.5h6.6A1.7 1.7 0 0 1 13 4.2v4.6a1.7 1.7 0 0 1-1.7 1.7H7.4L4.2 13v-2.5H4.7A1.7 1.7 0 0 1 3 8.8V4.2Z" stroke="currentColor" stroke-width="1.35" stroke-linejoin="round"/>
+              <path d="M5.6 5.6h4.8M5.6 7.8h3.1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+            </svg>
+            <span class="cockpit-chat-heading" data-i18n="chatTitle">РАЦИЯ // ЧАТ</span>
+          </div>
+          <span class="cockpit-chat-status" id="chat-channels-label" data-status="standby" data-i18n="chatStandby">ОЖИДАНИЕ</span>
+        </header>
+
+        <div class="cockpit-chat-feed" id="chat-viewport"></div>
+      </div>
+    </section>
+
+    <!-- 4. НИЖНЯЯ ЦЕНТРАЛЬНАЯ ПРИБОРНАЯ ПАНЕЛЬ ГРУЗОВИКА (TRUCK COCKPIT INSTRUMENT CLUSTER) -->
+    <section class="cockpit-cluster live-telemetry-panel is-offline" id="live-telemetry-panel" data-speed-unit="kmh" aria-label="Приборная панель тягача">
+
+      <!-- Козырёк и корпус приборного щитка -->
+      <div class="cluster-housing">
+
+        <!-- ЛЕВЫЙ КОЛОДЕЦ: АНАЛОГОВО-ЦИФРОВОЙ СПИДОМЕТР (0–160 KM/H или 0–100 MPH) -->
+        <div class="dial-pod dial-pod--speed" id="dial-pod-speed" aria-label="Спидометр">
+          <svg class="dial-svg" viewBox="0 0 220 220" aria-hidden="true">
+            <defs>
+              <radialGradient id="dialFaceGrad" cx="50%" cy="45%" r="55%">
+                <stop offset="0%" stop-color="#141b28"/>
+                <stop offset="72%" stop-color="#0b0f17"/>
+                <stop offset="100%" stop-color="#070a10"/>
+              </radialGradient>
+              <linearGradient id="bezelRingGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#475569"/>
+                <stop offset="35%" stop-color="#1e293b"/>
+                <stop offset="100%" stop-color="#0f172a"/>
+              </linearGradient>
+              <linearGradient id="speedNeedleGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+                <stop offset="0%" stop-color="#ea580c"/>
+                <stop offset="60%" stop-color="#ff5e1a"/>
+                <stop offset="100%" stop-color="#ff9e1b"/>
+              </linearGradient>
+              <filter id="needleGlow" x="-40%" y="-40%" width="180%" height="180%">
+                <feGaussianBlur stdDeviation="2.2" result="blur"/>
+                <feMerge>
+                  <feMergeNode in="blur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+
+            <!-- Внешний металлический обод и циферблат -->
+            <circle cx="110" cy="110" r="106" fill="url(#bezelRingGrad)"/>
+            <circle cx="110" cy="110" r="101" fill="url(#dialFaceGrad)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+            <!-- Декоративная дуга шкалы -->
+            <path d="M 46.36 173.64 A 90 90 0 1 1 173.64 173.64" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="3" stroke-linecap="round"/>
+
+            <!-- Шкала KM/H (0..160) -->
+            <g class="dial-scale dial-scale--kmh" id="speed-scale-kmh">
+              <line x1="54.14" y1="165.86" x2="43.53" y2="176.47" class="dial-tick-major"/>
+              <text x="63.33" y="156.67" class="dial-num">0</text>
+              <line x1="40.12" y1="161.83" x2="34.5" y2="166.0" class="dial-tick-minor"/>
+              <line x1="35.92" y1="149.6" x2="27.1" y2="154.31" class="dial-tick-mid"/>
+              <line x1="28.09" y1="139.31" x2="21.49" y2="141.67" class="dial-tick-minor"/>
+              <line x1="32.52" y1="125.41" x2="17.81" y2="128.34" class="dial-tick-major"/>
+              <text x="45.27" y="122.88" class="dial-num">20</text>
+              <line x1="23.1" y1="114.27" x2="16.11" y2="114.61" class="dial-tick-minor"/>
+              <line x1="26.4" y1="101.77" x2="16.45" y2="100.79" class="dial-tick-mid"/>
+              <line x1="25.61" y1="88.86" x2="18.82" y2="87.16" class="dial-tick-minor"/>
+              <line x1="37.01" y1="79.77" x2="23.16" y2="74.03" class="dial-tick-major"/>
+              <text x="49.02" y="84.74" class="dial-num">40</text>
+              <line x1="35.38" y1="65.27" x2="29.37" y2="61.67" class="dial-tick-minor"/>
+              <line x1="45.07" y1="56.71" x2="37.34" y2="50.37" class="dial-tick-mid"/>
+              <line x1="51.57" y1="45.54" x2="46.87" y2="40.35" class="dial-tick-minor"/>
+              <line x1="66.11" y1="44.31" x2="57.78" y2="31.84" class="dial-tick-major"/>
+              <text x="73.33" y="55.12" class="dial-num">60</text>
+              <line x1="72.8" y1="31.35" x2="69.81" y2="25.03" class="dial-tick-minor"/>
+              <line x1="85.62" y1="29.62" x2="82.71" y2="20.05" class="dial-tick-mid"/>
+              <line x1="97.23" y1="23.94" x2="96.21" y2="17.02" class="dial-tick-minor"/>
+              <line x1="110.0" y1="31.0" x2="110.0" y2="16.0" class="dial-tick-major dial-tick-accent"/>
+              <text x="110.0" y="44.0" class="dial-num dial-num-accent">80</text>
+              <line x1="122.77" y1="23.94" x2="123.79" y2="17.02" class="dial-tick-minor"/>
+              <line x1="134.38" y1="29.62" x2="137.29" y2="20.05" class="dial-tick-mid"/>
+              <line x1="147.2" y1="31.35" x2="150.19" y2="25.03" class="dial-tick-minor"/>
+              <line x1="153.89" y1="44.31" x2="162.22" y2="31.84" class="dial-tick-major"/>
+              <text x="146.67" y="55.12" class="dial-num">100</text>
+              <line x1="168.43" y1="45.54" x2="173.13" y2="40.35" class="dial-tick-minor"/>
+              <line x1="174.93" y1="56.71" x2="182.66" y2="50.37" class="dial-tick-mid"/>
+              <line x1="184.62" y1="65.27" x2="190.63" y2="61.67" class="dial-tick-minor"/>
+              <line x1="182.99" y1="79.77" x2="196.84" y2="74.03" class="dial-tick-major"/>
+              <text x="170.98" y="84.74" class="dial-num">120</text>
+              <line x1="194.39" y1="88.86" x2="201.18" y2="87.16" class="dial-tick-minor"/>
+              <line x1="193.6" y1="101.77" x2="203.55" y2="100.79" class="dial-tick-mid"/>
+              <line x1="196.9" y1="114.27" x2="203.89" y2="114.61" class="dial-tick-minor"/>
+              <line x1="187.48" y1="125.41" x2="202.19" y2="128.34" class="dial-tick-major"/>
+              <text x="174.73" y="122.88" class="dial-num">140</text>
+              <line x1="191.91" y1="139.31" x2="198.51" y2="141.67" class="dial-tick-minor"/>
+              <line x1="184.08" y1="149.6" x2="192.9" y2="154.31" class="dial-tick-mid"/>
+              <line x1="179.88" y1="161.83" x2="185.5" y2="166.0" class="dial-tick-minor"/>
+              <line x1="165.86" y1="165.86" x2="176.47" y2="176.47" class="dial-tick-major dial-tick-red"/>
+              <text x="156.67" y="156.67" class="dial-num dial-num-red">160</text>
+            </g>
+
+            <!-- Шкала MPH (0..100) — активируется в ATS или при ?units=mph -->
+            <g class="dial-scale dial-scale--mph" id="speed-scale-mph">
+              <line x1="54.14" y1="165.86" x2="43.53" y2="176.47" class="dial-tick-major"/>
+              <text x="63.33" y="156.67" class="dial-num">0</text>
+              <line x1="37.53" y1="154.41" x2="29.85" y2="159.11" class="dial-tick-minor"/>
+              <line x1="34.87" y1="134.41" x2="20.6" y2="139.05" class="dial-tick-major"/>
+              <text x="47.23" y="130.4" class="dial-num">10</text>
+              <line x1="25.26" y1="116.67" x2="16.29" y2="117.38" class="dial-tick-minor"/>
+              <line x1="31.97" y1="97.64" x2="17.16" y2="95.3" class="dial-tick-major"/>
+              <text x="44.81" y="99.68" class="dial-num">20</text>
+              <line x1="31.47" y1="77.47" x2="23.16" y2="74.03" class="dial-tick-minor"/>
+              <line x1="46.09" y1="63.56" x2="33.95" y2="54.75" class="dial-tick-major"/>
+              <text x="56.6" y="71.21" class="dial-num">30</text>
+              <line x1="54.8" y1="45.37" x2="48.95" y2="38.52" class="dial-tick-minor"/>
+              <line x1="74.13" y1="39.61" x2="67.32" y2="26.25" class="dial-tick-major"/>
+              <text x="80.04" y="51.19" class="dial-num">40</text>
+              <line x1="90.16" y1="27.35" x2="88.06" y2="18.6" class="dial-tick-minor"/>
+              <line x1="110.0" y1="31.0" x2="110.0" y2="16.0" class="dial-tick-major dial-tick-accent"/>
+              <text x="110.0" y="44.0" class="dial-num dial-num-accent">50</text>
+              <line x1="129.84" y1="27.35" x2="131.94" y2="18.6" class="dial-tick-minor"/>
+              <line x1="145.87" y1="39.61" x2="152.68" y2="26.25" class="dial-tick-major"/>
+              <text x="139.96" y="51.19" class="dial-num">60</text>
+              <line x1="165.2" y1="45.37" x2="171.05" y2="38.52" class="dial-tick-minor"/>
+              <line x1="173.91" y1="63.56" x2="186.05" y2="54.75" class="dial-tick-major"/>
+              <text x="163.4" y="71.21" class="dial-num">70</text>
+              <line x1="188.53" y1="77.47" x2="196.84" y2="74.03" class="dial-tick-minor"/>
+              <line x1="188.03" y1="97.64" x2="202.84" y2="95.3" class="dial-tick-major"/>
+              <text x="175.19" y="99.68" class="dial-num">80</text>
+              <line x1="194.74" y1="116.67" x2="203.71" y2="117.38" class="dial-tick-minor"/>
+              <line x1="185.13" y1="134.41" x2="199.4" y2="139.05" class="dial-tick-major"/>
+              <text x="172.77" y="130.4" class="dial-num">90</text>
+              <line x1="182.47" y1="154.41" x2="190.15" y2="159.11" class="dial-tick-minor"/>
+              <line x1="165.86" y1="165.86" x2="176.47" y2="176.47" class="dial-tick-major dial-tick-red"/>
+              <text x="156.67" y="156.67" class="dial-num dial-num-red">100</text>
+            </g>
+
+            <!-- Стрелка спидометра (ось вращения строго 110, 110; якорь viewBox исключает смещение в CEF/OBS) -->
+            <g class="dial-needle" id="speed-needle">
+              <rect x="0" y="0" width="220" height="220" fill="none"/>
+              <line x1="110" y1="54" x2="110" y2="18" stroke="#ff6b1a" stroke-width="5" stroke-linecap="round" opacity="0.45" filter="url(#needleGlow)"/>
+              <polygon points="107.6,58 108.8,19 111.2,19 112.4,58" fill="url(#speedNeedleGrad)"/>
+              <polygon points="108.8,19 110,14 111.2,19" fill="#ffffff"/>
+            </g>
+          </svg>
+
+          <!-- Цифровой хаб спидометра -->
+          <div class="dial-center-display" id="lt-speed-block">
+            <span class="lt-limit-sign is-inactive" id="lt-limit" title="Ограничение скорости">--</span>
+            <span class="lt-speed-val" id="lt-speed">--</span>
+            <span class="lt-speed-unit" id="lt-speed-unit" data-i18n="kmh">КМ/Ч</span>
+          </div>
+
+          <!-- Нижний шильдик круиз-контроля в вырезе циферблата -->
+          <div class="dial-bottom-slot">
+            <span class="lt-pill lt-pill--cruise" id="lt-cruise" data-i18n="cruiseStandby">КК --</span>
+          </div>
+        </div>
+
+        <!-- ЦЕНТРАЛЬНЫЙ БОРТОВОЙ ДИСПЛЕЙ (MFD / БОРТОВОЙ КОМПЬЮТЕР) -->
+        <div class="cockpit-mfd" id="cockpit-mfd" aria-label="Бортовой компьютер и контрольные лампы">
+
+          <!-- Блок 1: Полный ряд контрольных ламп (Tell-tales) -->
+          <div class="mfd-tell-tales" id="lt-indicators" aria-label="Контрольные лампы приборной панели">
+            <span class="lt-ind lt-ind--blink" id="lt-ind-blink-l" title="Левый поворотник">◀</span>
+
+            <div class="mfd-telltale-rows">
+              <!-- Линия 1: Освещение, маячок, круиз и дворники (8 индикаторов) -->
+              <div class="mfd-telltale-row mfd-telltale-row--lights">
+                <span class="lt-ind lt-ind--red" id="lt-ind-hazard" title="Аварийная сигнализация">
+                  <svg viewBox="0 0 16 14" aria-hidden="true"><path d="M8 1.4 14.5 12.6H1.5L8 1.4Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M8 4.4 11.4 10.6H4.6L8 4.4Z" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/></svg>
+                </span>
+                <span class="lt-ind lt-ind--green" id="lt-ind-park" title="Габариты">
+                  <svg viewBox="0 0 16 12" aria-hidden="true"><path d="M7 2C4.8 2 3.5 3.8 3.5 6S4.8 10 7 10V2Zm2 0C11.2 2 12.5 3.8 12.5 6S11.2 10 9 10V2Z" fill="currentColor"/><path d="M1 4h1.5M1 6h1.5M1 8h1.5M13.5 4H15M13.5 6H15M13.5 8H15" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                </span>
+                <span class="lt-ind lt-ind--green" id="lt-ind-low" title="Ближний свет">
+                  <svg viewBox="0 0 16 12" aria-hidden="true"><path d="M8 2.5C11.2 2.5 13 4 13 6s-1.8 3.5-5 3.5H7v-7h1Z" fill="currentColor"/><path d="M1.5 5l3.8 1.2M1.5 7.5l3.8 1.2M1.5 10l3.8 1.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                </span>
+                <span class="lt-ind lt-ind--blue" id="lt-ind-high" title="Дальний свет">
+                  <svg viewBox="0 0 16 12" aria-hidden="true"><path d="M8 2.5C11.2 2.5 13 4 13 6s-1.8 3.5-5 3.5H7v-7h1Z" fill="currentColor"/><path d="M1.5 3.5h4M1.5 6h4M1.5 8.5h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                </span>
+                <span class="lt-ind lt-ind--green" id="lt-ind-fog" title="Противотуманные фары">
+                  <svg viewBox="0 0 16 12" aria-hidden="true"><path d="M8.5 2.5C11.4 2.5 13 4 13 6s-1.6 3.5-4.5 3.5H7.5v-7h1Z" fill="currentColor"/><path d="M1.5 4.2l4 1M1.5 6.8l4 1M1.5 9.4l4 1" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/><path d="M4.2 2.4c-.9 1.2.9 2.4 0 3.6s.9 2.4 0 3.6" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/></svg>
+                </span>
+                <span class="lt-ind lt-ind--amber" id="lt-ind-beacon" title="Проблесковый маячок">
+                  <svg viewBox="0 0 14 12" aria-hidden="true"><path d="M4.5 9.5V6.2a2.5 2.5 0 0 1 5 0v3.3H4.5Z" fill="currentColor"/><rect x="3" y="9.5" width="8" height="1.8" rx="0.7" fill="currentColor"/><path d="M7 1v1.4M2.8 2.8l1 1M11.2 2.8l-1 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                </span>
+                <span class="lt-ind lt-ind--green" id="lt-ind-cruise" title="Круиз-контроль">
+                  <svg viewBox="0 0 16 12" aria-hidden="true"><path d="M2.8 9.6a5.4 5.4 0 0 1 10.4 0" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M8 9.2L10.8 5.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="9.4" r="1.2" fill="currentColor"/><path d="M12.4 2.7l1.8 1.3-1.8 1.3" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                <span class="lt-ind lt-ind--cyan" id="lt-ind-wipers" title="Стеклоочистители">
+                  <svg viewBox="0 0 16 12" aria-hidden="true"><path d="M2 9.5C4 3.5 12 3.5 14 9.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M8 9.5L11.5 3.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="9.5" r="1.2" fill="currentColor"/></svg>
+                </span>
+              </div>
+
+              <!-- Линия 2: Шасси и аварийные предупреждения (9 индикаторов) -->
+              <div class="mfd-telltale-row mfd-telltale-row--status">
+                <span class="lt-ind lt-ind--text lt-ind--red" id="lt-ind-park-brake" title="Стояночный тормоз">(P)</span>
+                <span class="lt-ind lt-ind--text lt-ind--red" id="lt-ind-air-warn" title="Низкое давление воздуха">(!)</span>
+                <span class="lt-ind lt-ind--text lt-ind--amber" id="lt-ind-difflock" title="Блокировка дифференциала">DIFF</span>
+                <span class="lt-ind lt-ind--text lt-ind--cyan" id="lt-ind-lift-axle" title="Подъёмная ось">AXLE</span>
+                <span class="lt-ind lt-ind--amber" id="lt-ind-fuel-warn" title="Низкий уровень топлива">
+                  <svg viewBox="0 0 14 12" aria-hidden="true"><path d="M3 2.5A1 1 0 0 1 4 1.5h4a1 1 0 0 1 1 1V10H3V2.5Zm1.5 1v2.5h3V3.5h-3Z" fill="currentColor"/><path d="M9 4.5h1.3l.7 1.2V9a.8.8 0 0 1-.8.8h-.4" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                <span class="lt-ind lt-ind--amber" id="lt-ind-rest-warn" title="Необходим отдых водителя">
+                  <svg viewBox="0 0 16 12" aria-hidden="true"><path d="M2 9.5V4.5h1.4v2h7.6a2 2 0 0 1 2 2v1H11.5V8H3.4v1.5H2Z" fill="currentColor"/><circle cx="5.2" cy="5.2" r="1.15" fill="currentColor"/><path d="M9.6 2.2h2.2L9.6 4.4h2.2" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                <span class="lt-ind lt-ind--red" id="lt-ind-oil-warn" title="Давление / перегрев масла">
+                  <svg viewBox="0 0 16 12" aria-hidden="true"><path d="M2 7.5h3l1.5-2h4l2.8-1.3.7.9-2.7 3.9H3.8L2 7.5Z" fill="currentColor"/><path d="M5.5 3.5h3M13.6 7.5c0 .9-.7 1.5-1.1 1.5s-1.1-.6-1.1-1.5c0-.6.5-1.4 1.1-2 .6.6 1.1 1.4 1.1 2Z" stroke="currentColor" stroke-width="1.1" fill="none" stroke-linecap="round"/></svg>
+                </span>
+                <span class="lt-ind lt-ind--red" id="lt-ind-water-warn" title="Перегрев охлаждающей жидкости">
+                  <svg viewBox="0 0 14 12" aria-hidden="true"><path d="M7 1.5v5.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="7" cy="8.5" r="2" fill="currentColor"/><path d="M2 9.5c1 .8 2 .8 3 0s2-.8 3 0 2 .8 3 0" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+                </span>
+                <span class="lt-ind lt-ind--amber" id="lt-ind-battery-warn" title="Разряд АКБ">
+                  <svg viewBox="0 0 16 12" aria-hidden="true"><rect x="2" y="3" width="12" height="7.2" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M4.5 1.8v1.2M11.5 1.8v1.2M4.5 6.6h2M9.5 6.6h2M10.5 5.6v2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                </span>
+              </div>
+            </div>
+
+            <span class="lt-ind lt-ind--blink" id="lt-ind-blink-r" title="Правый поворотник">▶</span>
+          </div>
+
+          <!-- Блок 2: Вспомогательные шкалы (Топливо, Воздух, ОЖ/Масло, AdBlue/АКБ) -->
+          <div class="mfd-gauges-grid" aria-label="Вспомогательные датчики">
+            <!-- Топливо и запас хода -->
+            <div class="mfd-gauge-card">
+              <div class="mfd-gauge-top">
+                <span class="mfd-gauge-label" data-i18n="fuel">ТОПЛИВО</span>
+                <span class="mfd-gauge-val" id="lt-sensor-fuel">--</span>
+              </div>
+              <div class="mfd-bar-track" aria-hidden="true">
+                <div class="mfd-bar-fill mfd-bar-fill--fuel" id="mfd-fuel-fill"></div>
+              </div>
+              <div class="mfd-gauge-meta">
+                <span id="lt-sensor-range">--</span>
+                <span id="lt-sensor-fuel-avg">--</span>
+              </div>
+            </div>
+
+            <!-- Давление воздуха в пневмосистеме -->
+            <div class="mfd-gauge-card">
+              <div class="mfd-gauge-top">
+                <span class="mfd-gauge-label" data-i18n="air">ВОЗДУХ</span>
+                <span class="mfd-gauge-val" id="lt-sensor-air">--</span>
+              </div>
+              <div class="mfd-bar-track" aria-hidden="true">
+                <div class="mfd-bar-fill mfd-bar-fill--air" id="mfd-air-fill"></div>
+              </div>
+              <div class="mfd-gauge-meta">
+                <span data-i18n="mfdAirNorm">ПНЕВМО</span>
+                <span id="lt-sensor-battery">--</span>
+              </div>
+            </div>
+
+            <!-- Температура масла / ОЖ -->
+            <div class="mfd-gauge-card">
+              <div class="mfd-gauge-top">
+                <span class="mfd-gauge-label" data-i18n="oilWater">МАСЛО/ВОДА</span>
+                <span class="mfd-gauge-val" id="lt-sensor-temps">--</span>
+              </div>
+              <div class="mfd-bar-track" aria-hidden="true">
+                <div class="mfd-bar-fill mfd-bar-fill--temp" id="mfd-temp-fill"></div>
+              </div>
+              <div class="mfd-gauge-meta">
+                <span data-i18n="adblue">МОЧЕВИНА</span>
+                <span id="lt-sensor-adblue">--</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Блок 3: Педали, руль и прогресс маршрута -->
+          <div class="mfd-inputs-bar" aria-label="Педали и рулевое управление">
+            <div class="mfd-input-item">
+              <span class="mfd-input-label" data-i18n="throttle">ГАЗ</span>
+              <div class="dash-input-track">
+                <div class="dash-input-fill dash-input-fill--throttle" id="lt-throttle-fill"></div>
+              </div>
+            </div>
+            <div class="mfd-input-item">
+              <span class="mfd-input-label" data-i18n="brake">ТОРМ</span>
+              <div class="dash-input-track">
+                <div class="dash-input-fill dash-input-fill--brake" id="lt-brake-fill"></div>
+              </div>
+            </div>
+            <div class="mfd-input-item mfd-input-item--steer">
+              <span class="mfd-input-label" data-i18n="steer">РУЛЬ</span>
+              <div class="dash-steer-track">
+                <div class="dash-steer-knob" id="lt-steer-knob"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Блок 4: Модель тягача, одометр и износ тягача / прицепа / груза -->
+          <div class="mfd-footer is-offline" id="truck-board" aria-label="Тягач и износ">
+            <div class="mfd-truck-row">
+              <div class="truck-identity">
+                <span class="truck-model" id="lt-truck-model" data-i18n="truckStandby">ТЯГАЧ // ОЖИДАНИЕ</span>
+                <span class="truck-plate is-empty" id="lt-truck-plate"></span>
+              </div>
+              <span class="truck-odometer" id="lt-truck-odometer">-- КМ</span>
+            </div>
+            <div class="mfd-health-row">
+              <span class="truck-health is-detached" id="lt-truck-health" title="Исправность тягача">СОСТ: --</span>
+              <span class="truck-health is-detached" id="lt-trailer-health" title="Исправность прицепа">ПРИЦЕП: --</span>
+              <span class="truck-health is-detached" id="lt-cargo-health" title="Сохранность груза">ГРУЗ: --</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ПРАВЫЙ КОЛОДЕЦ: АНАЛОГОВО-ЦИФРОВОЙ ТАХОМЕТР (0–30 x100 RPM) -->
+        <div class="dial-pod dial-pod--rpm" id="dial-pod-rpm" aria-label="Тахометр">
+          <svg class="dial-svg" viewBox="0 0 220 220" aria-hidden="true">
+            <defs>
+              <radialGradient id="rpmDialFaceGrad" cx="50%" cy="45%" r="55%">
+                <stop offset="0%" stop-color="#141b28"/>
+                <stop offset="72%" stop-color="#0b0f17"/>
+                <stop offset="100%" stop-color="#070a10"/>
+              </radialGradient>
+              <linearGradient id="rpmBezelRingGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#475569"/>
+                <stop offset="35%" stop-color="#1e293b"/>
+                <stop offset="100%" stop-color="#0f172a"/>
+              </linearGradient>
+              <linearGradient id="rpmNeedleGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+                <stop offset="0%" stop-color="#dc2626"/>
+                <stop offset="65%" stop-color="#ef4444"/>
+                <stop offset="100%" stop-color="#ff6b6b"/>
+              </linearGradient>
+              <filter id="rpmNeedleGlow" x="-40%" y="-40%" width="180%" height="180%">
+                <feGaussianBlur stdDeviation="2.2" result="blur"/>
+                <feMerge>
+                  <feMergeNode in="blur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+
+            <!-- Внешний металлический обод и циферблат -->
+            <circle cx="110" cy="110" r="106" fill="url(#rpmBezelRingGrad)"/>
+            <circle cx="110" cy="110" r="101" fill="url(#rpmDialFaceGrad)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+
+            <!-- Базовая дуга, зелёная ЭКО-зона (1000-1500) и красная отсечка (2200-3000) -->
+            <path d="M 46.36 173.64 A 90 90 0 1 1 173.64 173.64" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="3" stroke-linecap="round"/>
+            <path d="M 46.36 46.36 A 90 90 0 0 1 110.0 20.0" fill="none" stroke="#22c55e" stroke-width="6" stroke-linecap="butt" opacity="0.88"/>
+            <path d="M 190.19 69.14 A 90 90 0 0 1 173.64 173.64" fill="none" stroke="#ef4444" stroke-width="6" stroke-linecap="butt" opacity="0.92"/>
+
+            <!-- Деления и подписи тахометра (0..30 x100) -->
+            <g class="dial-scale dial-scale--rpm">
+              <line x1="54.14" y1="165.86" x2="43.53" y2="176.47" class="dial-tick-major"/>
+              <text x="63.33" y="156.67" class="dial-num">0</text>
+              <line x1="41.23" y1="159.96" x2="33.95" y2="165.25" class="dial-tick-minor"/>
+              <line x1="34.26" y1="148.59" x2="26.25" y2="152.68" class="dial-tick-minor"/>
+              <line x1="29.16" y1="136.27" x2="20.6" y2="139.05" class="dial-tick-minor"/>
+              <line x1="26.05" y1="123.3" x2="17.16" y2="124.7" class="dial-tick-minor"/>
+              <line x1="31.0" y1="110.0" x2="16.0" y2="110.0" class="dial-tick-major"/>
+              <text x="44.0" y="110.0" class="dial-num">5</text>
+              <line x1="26.05" y1="96.7" x2="17.16" y2="95.3" class="dial-tick-minor"/>
+              <line x1="29.16" y1="83.73" x2="20.6" y2="80.95" class="dial-tick-minor"/>
+              <line x1="34.26" y1="71.41" x2="26.25" y2="67.32" class="dial-tick-minor"/>
+              <line x1="41.23" y1="60.04" x2="33.95" y2="54.75" class="dial-tick-minor"/>
+              <line x1="54.14" y1="54.14" x2="43.53" y2="43.53" class="dial-tick-major dial-tick-eco"/>
+              <text x="63.33" y="63.33" class="dial-num dial-num-eco">10</text>
+              <line x1="60.04" y1="41.23" x2="54.75" y2="33.95" class="dial-tick-minor dial-tick-eco"/>
+              <line x1="71.41" y1="34.26" x2="67.32" y2="26.25" class="dial-tick-minor dial-tick-eco"/>
+              <line x1="83.73" y1="29.16" x2="80.95" y2="20.6" class="dial-tick-minor dial-tick-eco"/>
+              <line x1="96.7" y1="26.05" x2="95.3" y2="17.16" class="dial-tick-minor dial-tick-eco"/>
+              <line x1="110.0" y1="31.0" x2="110.0" y2="16.0" class="dial-tick-major dial-tick-eco"/>
+              <text x="110.0" y="44.0" class="dial-num dial-num-eco">15</text>
+              <line x1="123.3" y1="26.05" x2="124.7" y2="17.16" class="dial-tick-minor"/>
+              <line x1="136.27" y1="29.16" x2="139.05" y2="20.6" class="dial-tick-minor"/>
+              <line x1="148.59" y1="34.26" x2="152.68" y2="26.25" class="dial-tick-minor"/>
+              <line x1="159.96" y1="41.23" x2="165.25" y2="33.95" class="dial-tick-minor"/>
+              <line x1="165.86" y1="54.14" x2="176.47" y2="43.53" class="dial-tick-major"/>
+              <text x="156.67" y="63.33" class="dial-num">20</text>
+              <line x1="178.77" y1="60.04" x2="186.05" y2="54.75" class="dial-tick-minor"/>
+              <line x1="185.74" y1="71.41" x2="193.75" y2="67.32" class="dial-tick-minor dial-tick-red"/>
+              <line x1="190.84" y1="83.73" x2="199.4" y2="80.95" class="dial-tick-minor dial-tick-red"/>
+              <line x1="193.95" y1="96.7" x2="202.84" y2="95.3" class="dial-tick-minor dial-tick-red"/>
+              <line x1="189.0" y1="110.0" x2="204.0" y2="110.0" class="dial-tick-major dial-tick-red"/>
+              <text x="176.0" y="110.0" class="dial-num dial-num-red">25</text>
+              <line x1="193.95" y1="123.3" x2="202.84" y2="124.7" class="dial-tick-minor dial-tick-red"/>
+              <line x1="190.84" y1="136.27" x2="199.4" y2="139.05" class="dial-tick-minor dial-tick-red"/>
+              <line x1="185.74" y1="148.59" x2="193.75" y2="152.68" class="dial-tick-minor dial-tick-red"/>
+              <line x1="178.77" y1="159.96" x2="186.05" y2="165.25" class="dial-tick-minor dial-tick-red"/>
+              <line x1="165.86" y1="165.86" x2="176.47" y2="176.47" class="dial-tick-major dial-tick-red"/>
+              <text x="156.67" y="156.67" class="dial-num dial-num-red">30</text>
+              <text x="110" y="196" class="dial-unit-sub">x100 RPM</text>
+            </g>
+
+            <!-- Стрелка тахометра (ось вращения строго 110, 110; якорь viewBox исключает смещение в CEF/OBS) -->
+            <g class="dial-needle" id="rpm-needle">
+              <rect x="0" y="0" width="220" height="220" fill="none"/>
+              <line x1="110" y1="54" x2="110" y2="18" stroke="#ef4444" stroke-width="5" stroke-linecap="round" opacity="0.45" filter="url(#rpmNeedleGlow)"/>
+              <polygon points="107.6,58 108.8,19 111.2,19 112.4,58" fill="url(#rpmNeedleGrad)"/>
+              <polygon points="108.8,19 110,14 111.2,19" fill="#ffffff"/>
+            </g>
+          </svg>
+
+          <!-- Цифровой хаб тахометра (Передача, режим КПП и RPM) -->
+          <div class="dial-center-display dial-center-display--rpm">
+            <span class="dial-gear-mode" id="lt-gear-mode">AUTO</span>
+            <span class="lt-gear-val" id="lt-gear">--</span>
+            <span class="lt-rpm-meta" id="lt-rpm-text" data-i18n="rpmStandby">-- ОБ/МИН</span>
+          </div>
+
+          <!-- Нижний шильдик ретардера / моторного тормоза -->
+          <div class="dial-bottom-slot">
+            <span class="lt-ind lt-ind--text lt-ind--amber dial-retarder-pill" id="lt-ind-retarder" title="Ретардер / моторный тормоз">RET</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 5. ЗОНА СТРИМ-ОПОВЕЩЕНИЙ (ПО ЦЕНТРУ, ВЫЕЗД ИЗ-ПОД ПРИБОРНОЙ ПАНЕЛИ НА 10px ВЫШЕ) -->
+    <aside class="alert-dock stream-alert-dock" id="alert-dock" aria-live="polite" aria-label="Стрим-оповещения"></aside>
+
+    <!-- 6. ВСПЛЫВАЮЩИЕ ИГРОВЫЕ УВЕДОМЛЕНИЯ (в свободной верхней центральной зоне: top: 14%) -->
+    <div class="telemetry-event-toast" id="telemetry-event-toast" aria-live="assertive" aria-atomic="true"></div>
+
+    <!-- Скрытые совместимые DOM-якоря для модулей телеметрии -->
+    <div class="legacy-dom-anchors" hidden aria-hidden="true">
+      <span id="route-badge">--</span>
+      <span id="route-value">--</span>
+      <span id="route-meta">--</span>
+      <span id="lt-nav">--</span>
+      <div id="lt-cargo-chip"><span id="lt-cargo">--</span></div>
+      <div id="lt-route-progress-fill"></div>
+      <div id="lt-rpm-fill"></div>
+      <div id="dash-socials"><span id="dash-twitch-item"><span id="dash-twitch-text">twitch.tv/foozzee</span></span></div>
+      <div id="track-row"><span id="track-title"></span><span id="track-artist"></span><div id="eq-bars"></div></div>
+    </div>
+
+    <!-- ТЕСТОВАЯ КАРТА МЁРТВЫХ ЗОН HUD (?guides=1 или toggleGuides()) -->
+    <div class="hud-guides" aria-hidden="true">
+      <div class="hud-guide-zone guide-route-advisor">TOP ROUTE ADVISOR // FREE ZONE</div>
+      <div class="hud-guide-zone guide-mirror-left">LEFT MIRROR CLEARANCE</div>
+      <div class="hud-guide-zone guide-mirror-right">RIGHT F2 &amp; CABIN MIRROR // EYE-LEVEL CLEAR</div>
+      <div class="hud-guide-zone guide-windshield-dash">WINDSHIELD &amp; CENTER DASH // 100% CLEAR</div>
+    </div>
+
+  </main>
+
+  <script src="./config.js" onerror="window.OVERLAY_CONFIG=window.OVERLAY_CONFIG||{}"></script>
+  <script src="./assets/js/ets2-config.js"></script>
+  <script src="./assets/js/ets2-alerts.js"></script>
+  <script src="./assets/js/ets2-chat.js"></script>
+  <script src="./assets/js/ets2-telemetry.js"></script>
+  <script src="./assets/js/ets2-updater.js"></script>
+</body>
+</html>

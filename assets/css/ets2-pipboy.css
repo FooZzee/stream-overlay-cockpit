@@ -1,0 +1,370 @@
+/* ==========================================================================
+   PIP-BOY 3000 / CRT TERMINAL UPDATE MODAL
+   ETS2 / ATS Cockpit Telemetry Stream Overlay
+   ========================================================================== */
+
+/* 1. ПОЛНОЭКРАННАЯ ПОДЛОЖКА (BACKDROP) */
+.pipboy-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at center, rgba(3, 14, 5, 0.88) 0%, rgba(1, 6, 2, 0.96) 100%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  padding: 24px;
+  box-sizing: border-box;
+  opacity: 0;
+  animation: pipboy-fade-in 0.35s ease-out forwards;
+}
+
+@keyframes pipboy-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* 2. ОСНОВНОЙ КОРПУС КИНЕСКОПА (CRT MONITOR) */
+.pipboy-screen {
+  position: relative;
+  width: 780px;
+  max-width: 94vw;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  background: #030a04;
+  border: 2px solid #00ff66;
+  border-radius: 14px;
+  box-shadow:
+    0 0 35px rgba(0, 255, 102, 0.35),
+    inset 0 0 45px rgba(0, 255, 102, 0.15),
+    0 16px 36px rgba(0, 0, 0, 0.85);
+  overflow: hidden;
+  font-family: 'JetBrains Mono', 'Consolas', 'Courier New', monospace;
+  color: #00ff66;
+  box-sizing: border-box;
+  transform: scale(0.96);
+  animation: pipboy-crt-on 0.45s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+}
+
+@keyframes pipboy-crt-on {
+  0% {
+    transform: scale(0.92, 0.005);
+    filter: brightness(3);
+    opacity: 0.3;
+  }
+  60% {
+    transform: scale(1.02, 1.02);
+    filter: brightness(1.4);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+    opacity: 1;
+  }
+}
+
+/* 3. СКАНИРУЮЩИЕ ЛИНИИ И ЭФФЕКТ СТЕКЛА КИНЕСКОПА (SCANLINES & VIGNETTE) */
+.pipboy-screen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%,
+    rgba(0, 0, 0, 0.42) 50%
+  ),
+  linear-gradient(
+    90deg,
+    rgba(255, 0, 0, 0.03),
+    rgba(0, 255, 0, 0.01),
+    rgba(0, 0, 255, 0.03)
+  );
+  background-size: 100% 3px, 6px 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.pipboy-screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+  z-index: 11;
+}
+
+/* 4. ШАПКА ТЕРМИНАЛА (HEADER) */
+.pipboy-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 18px 24px;
+  border-bottom: 2px solid rgba(0, 255, 102, 0.4);
+  background: rgba(0, 255, 102, 0.06);
+  z-index: 5;
+}
+
+.pipboy-logo-wrapper {
+  position: relative;
+  flex-shrink: 0;
+  width: 76px;
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pipboy-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 0 12px rgba(0, 255, 102, 0.85));
+  animation: pipboy-logo-pulse 2.4s ease-in-out infinite alternate;
+}
+
+@keyframes pipboy-logo-pulse {
+  0% {
+    filter: drop-shadow(0 0 8px rgba(0, 255, 102, 0.7));
+    transform: scale(0.98);
+  }
+  100% {
+    filter: drop-shadow(0 0 16px rgba(0, 255, 102, 1));
+    transform: scale(1.02);
+  }
+}
+
+.pipboy-header-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.pipboy-sys-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: rgba(0, 255, 102, 0.75);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.pipboy-main-title {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #00ff66;
+  text-shadow: 0 0 8px rgba(0, 255, 102, 0.8);
+  margin-bottom: 6px;
+}
+
+.pipboy-status-strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pipboy-status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: rgba(0, 255, 102, 0.16);
+  border: 1px solid rgba(0, 255, 102, 0.5);
+  color: #00ff66;
+  text-shadow: 0 0 6px rgba(0, 255, 102, 0.8);
+}
+
+.pipboy-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #00ff66;
+  box-shadow: 0 0 8px #00ff66;
+  animation: pipboy-dot-blink 1.2s infinite;
+}
+
+@keyframes pipboy-dot-blink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(0.7); }
+}
+
+/* 5. ОБЛАСТЬ ТЕКСТА И ПЕЧАТНОЙ МАШИНКИ (BODY) */
+.pipboy-body {
+  position: relative;
+  flex: 1;
+  padding: 20px 24px;
+  overflow-y: auto;
+  max-height: 440px;
+  cursor: pointer;
+  z-index: 5;
+}
+
+.pipboy-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pipboy-body::-webkit-scrollbar-track {
+  background: rgba(0, 20, 5, 0.6);
+}
+
+.pipboy-body::-webkit-scrollbar-thumb {
+  background: #00ff66;
+  border-radius: 3px;
+  box-shadow: 0 0 6px #00ff66;
+}
+
+.pipboy-terminal-text {
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #00ff66;
+  text-shadow: 0 0 6px rgba(0, 255, 102, 0.7);
+}
+
+.pipboy-cursor {
+  display: inline-block;
+  width: 9px;
+  height: 16px;
+  background: #00ff66;
+  margin-left: 2px;
+  vertical-align: middle;
+  box-shadow: 0 0 8px #00ff66;
+  animation: pipboy-cursor-blink 0.65s infinite;
+}
+
+@keyframes pipboy-cursor-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+.pipboy-hint {
+  font-size: 11px;
+  color: rgba(0, 255, 102, 0.5);
+  margin-top: 10px;
+  font-style: italic;
+}
+
+/* 6. ПАНЕЛЬ ДЕЙСТВИЙ И КНОПКИ (FOOTER) */
+.pipboy-footer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  padding: 16px 24px;
+  border-top: 1px solid rgba(0, 255, 102, 0.3);
+  background: rgba(0, 255, 102, 0.04);
+  z-index: 5;
+}
+
+.pipboy-btn {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 12px 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  outline: none;
+}
+
+/* Кнопка "ОБНОВИТЬ" */
+.pipboy-btn--update {
+  background: rgba(0, 255, 102, 0.18);
+  border: 2px solid #00ff66;
+  color: #00ff66;
+  text-shadow: 0 0 8px rgba(0, 255, 102, 0.8);
+  box-shadow: 0 0 16px rgba(0, 255, 102, 0.35);
+}
+
+.pipboy-btn--update:hover {
+  background: #00ff66;
+  color: #030a04;
+  text-shadow: none;
+  box-shadow: 0 0 28px rgba(0, 255, 102, 0.9);
+  transform: translateY(-1px);
+}
+
+.pipboy-btn--update:active {
+  transform: translateY(1px);
+}
+
+/* Кнопка "ДА НУ ЕГО НАФИГ" */
+.pipboy-btn--dismiss {
+  background: transparent;
+  border: 1px solid rgba(0, 255, 102, 0.35);
+  color: rgba(0, 255, 102, 0.7);
+}
+
+.pipboy-btn--dismiss:hover {
+  border-color: #ff4d4d;
+  color: #ff6666;
+  text-shadow: 0 0 8px rgba(255, 77, 77, 0.8);
+  box-shadow: 0 0 16px rgba(255, 77, 77, 0.3);
+  transform: translateY(-1px);
+}
+
+.pipboy-btn--dismiss:active {
+  transform: translateY(1px);
+}
+
+/* 7. АНИМАЦИЯ ВЫКЛЮЧЕНИЯ ЭКРАНА (POWER OFF) */
+.pipboy-screen.pipboy-powering-off {
+  animation: pipboy-crt-off 0.45s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+@keyframes pipboy-crt-off {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  40% {
+    transform: scale(1.04, 0.005);
+    filter: brightness(3);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0, 0);
+    filter: brightness(0);
+    opacity: 0;
+  }
+}
+
+/* 8. АДАПТИВНОСТЬ ДЛЯ ВЕРТИКАЛЬНОЙ СЦЕНЫ (1080x1920) */
+@media (max-width: 1080px) {
+  .pipboy-screen {
+    width: 92vw;
+    max-height: 84vh;
+  }
+  .pipboy-header {
+    padding: 14px 18px;
+    gap: 14px;
+  }
+  .pipboy-logo-wrapper {
+    width: 58px;
+    height: 58px;
+  }
+  .pipboy-main-title {
+    font-size: 15px;
+  }
+  .pipboy-terminal-text {
+    font-size: 12.5px;
+  }
+  .pipboy-footer {
+    padding: 14px 18px;
+    gap: 12px;
+  }
+  .pipboy-btn {
+    padding: 10px 18px;
+    font-size: 12px;
+  }
+}

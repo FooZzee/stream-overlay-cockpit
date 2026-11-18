@@ -1,0 +1,2235 @@
+/* ==========================================================================
+   ETS2 / ATS Truck Cockpit Telemetry Overlay — Desktop (test_v0.0.1)
+   Стиль приборной панели тягача (Scania NextGen / Volvo FH) + нижний тикер
+   Оптимизировано для OBS Browser Source:
+   - Плотные высококонтрастные тёмные подложки (#0b0f17 / #111622)
+   - Полный запрет на функции размытия фона (Zero GPU blur overhead)
+   - Адаптивная компоновка для 1920x1080 и 2560x1440 без наложений
+   ========================================================================== */
+
+:root {
+  --desktop-edge-margin: 24px;
+  --ticker-height: 38px;
+  --top-ticker-height: var(--ticker-height);
+  --cluster-width: 988px;
+  --cluster-height: 244px;
+  --cluster-scale: 1;
+  --cluster-bottom: calc(var(--ticker-height, 38px) + 10px);
+  --cluster-actual-width: calc(var(--cluster-width) * var(--cluster-scale, 1));
+  --cluster-actual-half-width: calc(var(--cluster-width) * var(--cluster-scale, 1) / 2);
+  --cluster-actual-height: calc(var(--cluster-height) * var(--cluster-scale, 1));
+  --webcam-aspect: 4 / 3;
+  --webcam-actual-width: 325px;
+  --webcam-actual-height: 244px;
+  --webcam-hud-height: 30px;
+  --alert-rest-bottom: calc(var(--ticker-height, 38px) + 10px + (var(--cluster-height, 244px) * var(--cluster-scale, 1)) + 10px);
+  --cluster-bg: #0b0f17;
+  --cluster-surface: #111622;
+  --cluster-mfd-bg: #090d14;
+  --cluster-border: #2a3444;
+  --cluster-border-soft: rgba(255, 255, 255, 0.08);
+  --cluster-text-muted: #94a3b8;
+  /* Единые токены заводской мультимедийной консоли (Камера + Приборка + Чат) */
+  --console-radius: 14px;
+  --console-border-width: 1.5px;
+  --console-metal-border: #2a3444;
+  --console-amber: #f59e0b;
+  --console-cyan: #38bdf8;
+  --console-accent-line: linear-gradient(
+    90deg,
+    rgba(245, 158, 11, 0.90) 0%,
+    rgba(56, 189, 248, 0.85) 55%,
+    rgba(245, 158, 11, 0.16) 100%
+  );
+  --console-bevel-inset: inset 0 1px 0 rgba(255, 255, 255, 0.14), inset 0 -2px 8px rgba(0, 0, 0, 0.68);
+  --console-shadow: 0 14px 38px rgba(0, 0, 0, 0.86);
+  --hud-radius-tech: var(--console-radius);
+}
+
+:root[data-cockpit-theme="ice"],
+body[data-cockpit-theme="ice"] {
+  --cluster-bg: #080d16;
+  --cluster-surface: #0e1624;
+  --cluster-mfd-bg: #070b12;
+}
+
+.scene-desktop {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  min-width: 1280px;
+  min-height: 720px;
+  overflow: hidden;
+}
+
+/* Жёсткий запрет на размытие и гарантированная непрозрачность панелей в OBS */
+.scene-desktop .obc-panel {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.012) 0px,
+      rgba(255, 255, 255, 0.012) 1px,
+      transparent 1px,
+      transparent 6px
+    ),
+    #0b0f17;
+  border-color: rgba(255, 255, 255, 0.13);
+}
+
+/* ==========================================================================
+   1. НИЖНЯЯ БЕГУЩАЯ СТРОКА (TELEMETRY NEWS TICKER — под приборной панелью)
+   ========================================================================== */
+.top-news-ticker {
+  position: fixed;
+  top: auto;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: var(--ticker-height, 38px);
+  z-index: 80;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  background: #0b0f17;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  border-bottom: none;
+  box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.85);
+  pointer-events: none;
+  user-select: none;
+}
+
+.top-news-ticker::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -1px;
+  bottom: auto;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    rgba(var(--cockpit-accent-rgb), 0.15) 0%,
+    rgba(var(--cockpit-accent-rgb), 0.85) 50%,
+    rgba(var(--cockpit-accent-rgb), 0.15) 100%
+  );
+  pointer-events: none;
+}
+
+.top-ticker-anchor-left,
+.top-ticker-anchor-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  padding: 0 14px;
+  background: #111622;
+  position: relative;
+  z-index: 3;
+}
+
+.top-ticker-anchor-left {
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.top-ticker-anchor-right {
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.top-game-badge {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #090d14;
+  background: var(--cockpit-accent);
+  border: 1px solid var(--cockpit-accent);
+  border-radius: 4px;
+  padding: 2px 8px;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.top-game-badge.is-standby {
+  color: #94a3b8;
+  background: #1a2232;
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.top-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: #141b28;
+  color: #f3f6fb;
+  white-space: nowrap;
+}
+
+.top-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #f59e0b;
+}
+
+.top-status-pill.is-standby {
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.42);
+  background: rgba(245, 158, 11, 0.14);
+}
+
+.top-status-pill.is-standby .top-status-dot {
+  background: #f59e0b;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.85);
+}
+
+.top-status-pill.is-paused {
+  color: #fde047;
+  border-color: rgba(234, 179, 8, 0.45);
+  background: rgba(234, 179, 8, 0.16);
+}
+
+.top-status-pill.is-paused .top-status-dot {
+  background: #eab308;
+  box-shadow: 0 0 6px rgba(234, 179, 8, 0.85);
+}
+
+.top-status-pill.is-transit {
+  color: #4ade80;
+  border-color: rgba(34, 197, 94, 0.45);
+  background: rgba(34, 197, 94, 0.16);
+}
+
+.top-status-pill.is-transit .top-status-dot {
+  background: #22c55e;
+  box-shadow: 0 0 7px rgba(34, 197, 94, 0.9);
+}
+
+.top-status-pill.is-freeroam {
+  color: #5eead4;
+  border-color: rgba(45, 212, 191, 0.45);
+  background: rgba(45, 212, 191, 0.16);
+}
+
+.top-status-pill.is-freeroam .top-status-dot {
+  background: #2dd4bf;
+  box-shadow: 0 0 7px rgba(45, 212, 191, 0.9);
+}
+
+.top-version-pill {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--cockpit-accent);
+  background: rgba(var(--cockpit-accent-rgb), 0.14);
+  border: 1px solid rgba(var(--cockpit-accent-rgb), 0.36);
+  border-radius: 4px;
+  padding: 2px 6px;
+  white-space: nowrap;
+}
+
+.top-ticker-viewport {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 28px,
+    #000 calc(100% - 28px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 28px,
+    #000 calc(100% - 28px),
+    transparent 100%
+  );
+}
+
+.top-ticker-track {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  will-change: transform;
+  animation: top-ticker-scroll 46s linear infinite;
+}
+
+@keyframes top-ticker-scroll {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.top-ticker-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  padding-right: 16px;
+}
+
+.top-ticker-item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.top-ticker-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.top-ticker-val {
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.top-ticker-val--bright {
+  color: #ffffff;
+}
+
+.top-ticker-val--accent {
+  color: var(--cockpit-accent);
+}
+
+.top-ticker-val--cyan {
+  color: #38bdf8;
+}
+
+.top-ticker-val--purple {
+  color: #c084fc;
+}
+
+.top-ticker-sep {
+  font-size: 9px;
+  color: rgba(var(--cockpit-accent-rgb), 0.65);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .top-ticker-track {
+    animation-duration: 110s;
+  }
+}
+
+/* ==========================================================================
+   2. ВЕБ-КАМЕРА (СЛЕВА ОТ ПРИБОРКИ: ДВА РЕЖИМА 4:3 И 16:9, ТОЧНАЯ ЦЕНТРОВКА)
+   ========================================================================== */
+/* Режим 4:3 (по умолчанию — классический квадратный кадр: 325x244 @ 1080p) */
+body.cam-aspect-4x3,
+.scene-desktop .cam-box.cam-aspect-4x3 {
+  --webcam-aspect: 4 / 3;
+  --webcam-actual-width: 325px;
+  --webcam-actual-height: 244px;
+}
+
+/* Режим 16:9 (широкоформатный кадр веб-камеры: 384x216 @ 1080p) */
+body.cam-aspect-16x9,
+.scene-desktop .cam-box.cam-aspect-16x9 {
+  --webcam-aspect: 16 / 9;
+  --webcam-actual-width: 384px;
+  --webcam-actual-height: 216px;
+}
+
+.scene-desktop .cam-box {
+  position: fixed;
+  top: calc(100vh - var(--ticker-height, 38px) - 10px - var(--cluster-actual-height));
+  bottom: auto;
+  left: calc((50vw - var(--cluster-actual-half-width) - var(--webcam-actual-width)) / 2);
+  right: auto;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  width: var(--webcam-actual-width);
+  height: var(--webcam-actual-height);
+  aspect-ratio: var(--webcam-aspect, 4 / 3);
+  --cam-hud-height: var(--webcam-hud-height);
+  border-radius: 10px;
+  border: var(--console-border-width) solid var(--console-metal-border);
+  box-shadow: var(--console-shadow), var(--console-bevel-inset);
+  background: transparent;
+  overflow: hidden;
+  z-index: 20;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* Верхняя металлическо-акцентная полоса рамки камеры (едина с приборкой и чатом) */
+.scene-desktop .cam-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--console-accent-line);
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Внутренняя скошенная фаска корпуса рамки веб-камеры (мягкое скругление 8px) */
+.scene-desktop .cam-box::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: 8px;
+  border: 1px solid rgba(56, 189, 248, 0.16);
+  pointer-events: none;
+  z-index: 4;
+}
+
+/* Внутренняя область камеры занимает весь внешний контейнер 4:3 */
+.scene-desktop .cam-video-viewport {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.scene-desktop .cam-video-viewport .cam-corner {
+  width: 11px;
+  height: 11px;
+  opacity: 0.9;
+}
+
+.scene-desktop .cam-video-viewport .cam-corner--tl,
+.scene-desktop .cam-video-viewport .cam-corner--tr {
+  top: calc(var(--cam-hud-height) + 6px);
+  border-color: var(--console-amber);
+}
+
+.scene-desktop .cam-video-viewport .cam-corner--bl,
+.scene-desktop .cam-video-viewport .cam-corner--br {
+  bottom: 7px;
+  border-color: var(--console-cyan);
+}
+
+/* Бортовой индикатор «Реальное время в пути» поверх верхней кромки рамки 4:3 */
+.scene-desktop .cam-box .cam-eta-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--cam-hud-height);
+  padding: 0 12px;
+  background: linear-gradient(180deg, rgba(20, 26, 39, 0.96) 0%, rgba(11, 15, 23, 0.94) 100%);
+  border-bottom: 1px solid var(--console-metal-border);
+  border-left: none;
+  gap: 8px;
+  z-index: 2;
+}
+
+.scene-desktop .cam-box .cam-eta-bar::after {
+  content: '';
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(245, 158, 11, 0.65) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.scene-desktop .cam-box .cam-eta-bar.is-offline::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(56, 189, 248, 0.25) 50%,
+    transparent 100%
+  );
+}
+
+.scene-desktop .cam-eta-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.scene-desktop .cam-eta-icon {
+  width: 13px;
+  height: 13px;
+  color: var(--console-amber);
+  flex-shrink: 0;
+}
+
+.scene-desktop .cam-eta-bar.is-offline .cam-eta-icon {
+  color: #64748b;
+}
+
+.scene-desktop .cam-eta-bar.is-offline .status-led {
+  background: #64748b;
+}
+
+.scene-desktop .cam-eta-bar.is-offline .status-led::after {
+  animation: none;
+  opacity: 0;
+}
+
+.scene-desktop .cam-eta-label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.scene-desktop .cam-eta-value {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: var(--console-amber);
+  text-shadow: 0 0 10px rgba(245, 158, 11, 0.36);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.scene-desktop .cam-eta-bar.is-offline .cam-eta-value {
+  color: #64748b;
+  text-shadow: none;
+}
+
+/* ==========================================================================
+   2.2. БЛОК ЧАТА (СПРАВА ОТ ПРИБОРКИ: ЗАЗОРЫ ПО 5px СЛЕВА И СПРАВА, ВРОВЕНЬ)
+   Непрозрачность 85% / прозрачность 15% (rgba(11, 15, 23, 0.85))
+   ========================================================================== */
+.scene-desktop .cockpit-chat-dock {
+  position: fixed;
+  top: auto;
+  bottom: var(--cluster-bottom);
+  left: auto;
+  right: 5px;
+  width: calc(50vw - var(--cluster-actual-half-width) - 10px);
+  height: var(--cluster-actual-height);
+  max-height: var(--cluster-actual-height);
+  overflow: hidden;
+  z-index: 20;
+}
+
+.cockpit-chat-shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--console-radius);
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.014) 0px,
+      rgba(255, 255, 255, 0.014) 1px,
+      transparent 1px,
+      transparent 6px
+    ),
+    rgba(11, 15, 23, 0.85);
+  border: var(--console-border-width) solid var(--console-metal-border);
+  box-shadow: var(--console-shadow), var(--console-bevel-inset);
+  overflow: hidden;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* Верхняя световая линия (идентична рамке веб-камеры и приборной панели) */
+.cockpit-chat-shell::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--console-accent-line);
+  pointer-events: none;
+  z-index: 4;
+}
+
+/* Внутренняя скошенная фаска корпуса чата (идентична рамке веб-камеры) */
+.cockpit-chat-shell::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: calc(var(--console-radius) - 2px);
+  border: 1px solid rgba(56, 189, 248, 0.14);
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Аккуратные угловые металлические метки корпуса чата */
+.cockpit-chat-corner {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.cockpit-chat-corner--tr {
+  top: 6px;
+  right: 6px;
+  color: rgba(56, 189, 248, 0.72);
+}
+
+.cockpit-chat-corner--bl {
+  bottom: 6px;
+  left: 6px;
+  color: rgba(245, 158, 11, 0.72);
+}
+
+/* Верхняя панель заголовка и статуса канала (высота 30px, 1-в-1 с шапкой камеры) */
+.cockpit-chat-bar {
+  position: relative;
+  flex-shrink: 0;
+  height: 30px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: linear-gradient(180deg, rgba(20, 26, 39, 0.96) 0%, rgba(11, 15, 23, 0.92) 100%);
+  border-bottom: 1px solid var(--console-metal-border);
+  user-select: none;
+}
+
+.cockpit-chat-bar::after {
+  content: '';
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(56, 189, 248, 0.55) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.cockpit-chat-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.cockpit-chat-led {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 7px rgba(34, 197, 94, 0.85);
+  flex-shrink: 0;
+}
+
+.cockpit-chat-icon {
+  width: 13px;
+  height: 13px;
+  color: var(--console-amber);
+  flex-shrink: 0;
+}
+
+.cockpit-chat-heading {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #e2e8f0;
+  white-space: nowrap;
+}
+
+.cockpit-chat-status {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  color: #7dd3fc;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  white-space: nowrap;
+}
+
+.cockpit-chat-status[data-status="live"],
+.cockpit-chat-status[data-status="test"] {
+  color: #4ade80;
+  background: rgba(34, 197, 94, 0.14);
+  border-color: rgba(34, 197, 94, 0.36);
+}
+
+/* Лента сообщений с мягким верхним затуханием */
+.cockpit-chat-feed {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  padding: 9px 10px 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 7px;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.68) 10%,
+    #000000 22%,
+    #000000 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.68) 10%,
+    #000000 22%,
+    #000000 100%
+  );
+}
+
+/* Модульные карточки сообщений с анимацией fade + slide-up */
+.cockpit-msg {
+  position: relative;
+  padding: 6px 10px 7px 13px;
+  border-radius: 8px;
+  background: rgba(17, 22, 34, 0.88);
+  border: 1px solid var(--console-metal-border);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  opacity: 0;
+  transform: translate3d(0, 14px, 0);
+  transition:
+    opacity 0.28s ease,
+    transform 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+}
+
+.cockpit-msg::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 7px;
+  bottom: 7px;
+  width: 2.5px;
+  border-radius: 2px;
+  background: var(--msg-accent, var(--cockpit-accent));
+  box-shadow: 0 0 7px var(--msg-accent, rgba(var(--cockpit-accent-rgb), 0.45));
+  pointer-events: none;
+}
+
+.cockpit-msg.is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.cockpit-msg.is-removing {
+  opacity: 0;
+  transform: translate3d(0, -10px, 0);
+}
+
+.cockpit-msg-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+
+.cockpit-msg-ident {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.cockpit-msg-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.cockpit-msg-platform {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  padding: 2px 5px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.cockpit-msg-platform-svg {
+  width: 10px;
+  height: 10px;
+  display: block;
+  flex-shrink: 0;
+}
+
+.cockpit-msg-platform--twitch {
+  background: rgba(145, 70, 255, 0.28);
+  border-color: rgba(168, 85, 247, 0.48);
+  color: #e9d5ff;
+}
+
+.cockpit-msg-platform--vk {
+  background: rgba(14, 165, 233, 0.24);
+  border-color: rgba(56, 189, 248, 0.48);
+  color: #bae6fd;
+}
+
+.cockpit-msg-role {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  padding: 2px 5px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+}
+
+.cockpit-msg-role--driver {
+  background: rgba(255, 158, 27, 0.22);
+  border-color: rgba(255, 158, 27, 0.48);
+  color: #fbbf24;
+}
+
+.cockpit-msg-role--mod {
+  background: rgba(34, 197, 94, 0.20);
+  border-color: rgba(34, 197, 94, 0.46);
+  color: #4ade80;
+}
+
+.cockpit-msg-role--vip {
+  background: rgba(236, 72, 153, 0.20);
+  border-color: rgba(244, 114, 182, 0.46);
+  color: #f472b6;
+}
+
+.cockpit-msg-role--sub {
+  background: rgba(56, 189, 248, 0.20);
+  border-color: rgba(56, 189, 248, 0.46);
+  color: #7dd3fc;
+}
+
+.cockpit-msg-author {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--msg-user-color, #38bdf8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.88);
+}
+
+.cockpit-msg-time {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.cockpit-msg-body {
+  font-size: 12.8px;
+  font-weight: 450;
+  line-height: 1.38;
+  color: #f1f5f9;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.72);
+  word-break: break-word;
+}
+
+.cockpit-msg-emote {
+  height: 1.35em;
+  width: auto;
+  vertical-align: middle;
+  margin: -2px 2px 0;
+  display: inline-block;
+}
+
+/* ==========================================================================
+   2.5. СТРИМ-ОПОВЕЩЕНИЯ (ВЫЕЗД ИЗ-ПОД ПРИБОРНОЙ ПАНЕЛИ + SHATTER EXPLOSION)
+   ========================================================================== */
+.scene-desktop .alert-dock,
+.scene-desktop .stream-alert-dock {
+  position: fixed;
+  left: 50%;
+  right: auto;
+  top: auto;
+  bottom: calc(var(--ticker-height, 38px) + 10px + (var(--cluster-height, 244px) * var(--cluster-scale, 1)) + 10px);
+  transform: translateX(-50%);
+  width: 540px;
+  max-width: calc(100vw - 64px);
+  z-index: 25; /* Строго ниже приборной панели (z-index: 30) для выезда из-под неё */
+  pointer-events: none;
+  overflow: visible;
+}
+
+.scene-desktop .alert-card,
+.scene-desktop .stream-alert-card {
+  position: relative;
+  width: 100%;
+  padding: 13px 16px 15px;
+  border-radius: var(--hud-radius-tech);
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.018) 0px,
+      rgba(255, 255, 255, 0.018) 1px,
+      transparent 1px,
+      transparent 6px
+    ),
+    linear-gradient(180deg, rgba(18, 25, 38, 0.96) 0%, rgba(12, 17, 26, 0.95) 100%);
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  border: 1.5px solid rgba(var(--alert-rgb, 245, 158, 11), 0.50);
+  border-left: 4px solid var(--alert-color, #f59e0b);
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.86),
+    0 0 22px rgba(var(--alert-rgb, 245, 158, 11), 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+  opacity: 0;
+  transform: translate3d(0, calc(100% + 46px), 0) scale(0.95);
+  transition:
+    transform 0.56s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.22s ease;
+  will-change: transform, opacity;
+}
+
+/* Верхняя светящаяся акцентная полоса */
+.scene-desktop .stream-alert-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--alert-color, #f59e0b) 0%,
+    rgba(255, 255, 255, 0.85) 45%,
+    rgba(var(--alert-rgb, 245, 158, 11), 0.20) 100%
+  );
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Цветовые акценты по типу стрим-события */
+.scene-desktop .stream-alert-card--donate,
+.scene-desktop .alert-card--donate {
+  --alert-color: #f59e0b;
+  --alert-rgb: 245, 158, 11;
+}
+
+.scene-desktop .stream-alert-card--sub,
+.scene-desktop .alert-card--sub {
+  --alert-color: #10b981;
+  --alert-rgb: 16, 185, 129;
+}
+
+.scene-desktop .stream-alert-card--follow,
+.scene-desktop .alert-card--follow {
+  --alert-color: #38bdf8;
+  --alert-rgb: 56, 189, 248;
+}
+
+.scene-desktop .stream-alert-card--raid,
+.scene-desktop .alert-card--raid {
+  --alert-color: #a855f7;
+  --alert-rgb: 168, 85, 247;
+}
+
+.scene-desktop .stream-alert-card--points,
+.scene-desktop .alert-card--points {
+  --alert-color: #f43f5e;
+  --alert-rgb: 244, 63, 94;
+}
+
+.scene-desktop .alert-card.is-visible,
+.scene-desktop .stream-alert-card.is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  animation: stream-alert-border-flash 0.72s ease-out 0.14s both;
+}
+
+@keyframes stream-alert-border-flash {
+  0% {
+    box-shadow:
+      0 18px 42px rgba(0, 0, 0, 0.86),
+      0 0 0 0 rgba(var(--alert-rgb, 245, 158, 11), 0.75),
+      inset 0 0 24px rgba(var(--alert-rgb, 245, 158, 11), 0.34);
+  }
+  45% {
+    box-shadow:
+      0 18px 42px rgba(0, 0, 0, 0.86),
+      0 0 28px 3px rgba(var(--alert-rgb, 245, 158, 11), 0.52),
+      inset 0 0 12px rgba(var(--alert-rgb, 245, 158, 11), 0.18);
+  }
+  100% {
+    box-shadow:
+      0 18px 42px rgba(0, 0, 0, 0.86),
+      0 0 22px rgba(var(--alert-rgb, 245, 158, 11), 0.22),
+      inset 0 1px 0 rgba(255, 255, 255, 0.14),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.55);
+  }
+}
+
+.scene-desktop .alert-card.is-leaving,
+.scene-desktop .stream-alert-card.is-leaving {
+  opacity: 0;
+  transform: translate3d(0, -6px, 0) scale(1.02);
+  transition: opacity 0.14s ease, transform 0.14s ease;
+}
+
+/* Металлические модульные уголки карточки */
+.stream-alert-corner {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-color: rgba(var(--alert-rgb, 245, 158, 11), 0.85);
+  border-style: solid;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.stream-alert-corner--tl {
+  top: 4px;
+  left: 6px;
+  border-width: 2px 0 0 2px;
+}
+
+.stream-alert-corner--tr {
+  top: 4px;
+  right: 5px;
+  border-width: 2px 2px 0 0;
+}
+
+.stream-alert-corner--bl {
+  bottom: 6px;
+  left: 6px;
+  border-width: 0 0 2px 2px;
+}
+
+.stream-alert-corner--br {
+  bottom: 6px;
+  right: 5px;
+  border-width: 0 2px 2px 0;
+}
+
+/* Внутренняя сетка карточки стрим-оповещения */
+.stream-alert-layout {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  align-items: center;
+  column-gap: 14px;
+}
+
+.stream-alert-icon-box {
+  width: 52px;
+  height: 52px;
+  border-radius: 10px 4px 10px 4px;
+  background: radial-gradient(
+    circle at 35% 30%,
+    rgba(var(--alert-rgb, 245, 158, 11), 0.24) 0%,
+    rgba(9, 13, 21, 0.96) 76%
+  );
+  border: 1.5px solid rgba(var(--alert-rgb, 245, 158, 11), 0.52);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 0 14px rgba(var(--alert-rgb, 245, 158, 11), 0.24);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--alert-color, #f59e0b);
+  flex-shrink: 0;
+}
+
+.stream-alert-icon-box svg {
+  width: 28px;
+  height: 28px;
+  display: block;
+  filter: drop-shadow(0 0 6px rgba(var(--alert-rgb, 245, 158, 11), 0.55));
+}
+
+.stream-alert-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.scene-desktop .stream-alert-card .alert-top {
+  margin-bottom: 2px;
+}
+
+.scene-desktop .stream-alert-card .alert-code {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  letter-spacing: 0.10em;
+  color: var(--alert-color);
+}
+
+.stream-alert-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--alert-color);
+  box-shadow: 0 0 8px var(--alert-color);
+  flex-shrink: 0;
+}
+
+.scene-desktop .stream-alert-card .alert-badge {
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  font-variant-numeric: tabular-nums;
+  color: #090d14;
+  background: var(--alert-color);
+  padding: 2px 9px;
+  border-radius: 4px;
+  box-shadow: 0 0 12px rgba(var(--alert-rgb, 245, 158, 11), 0.42);
+}
+
+.scene-desktop .stream-alert-card .alert-user {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.75);
+}
+
+.scene-desktop .stream-alert-card .alert-subtitle {
+  font-size: 10.5px;
+  color: #94a3b8;
+  letter-spacing: 0.07em;
+}
+
+.scene-desktop .stream-alert-card .alert-message {
+  margin-top: 6px;
+  padding: 6px 10px;
+  border-radius: 0 5px 5px 0;
+  background: rgba(6, 9, 15, 0.74);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-left: 2.5px solid rgba(var(--alert-rgb, 245, 158, 11), 0.75);
+  font-size: 13px;
+  line-height: 1.38;
+  color: #e2e8f0;
+  opacity: 1;
+}
+
+.scene-desktop .stream-alert-card .alert-progress-track {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.scene-desktop .stream-alert-card .alert-progress-fill {
+  background: linear-gradient(
+    90deg,
+    var(--alert-color) 0%,
+    rgba(255, 255, 255, 0.90) 100%
+  );
+  box-shadow: 0 0 8px rgba(var(--alert-rgb, 245, 158, 11), 0.65);
+}
+
+/* --- Сцена эффекта «взрыва на кусочки» (Shatter / Explosion Effect) --- */
+.stream-alert-shatter-stage {
+  position: relative;
+  width: 100%;
+  pointer-events: none;
+  overflow: visible;
+  contain: layout style;
+}
+
+.shatter-flash {
+  position: absolute;
+  inset: -4px;
+  border-radius: var(--hud-radius-tech);
+  border: 2px solid var(--alert-color, #f59e0b);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 255, 255, 0.55) 0%,
+    rgba(var(--alert-rgb, 245, 158, 11), 0.34) 48%,
+    transparent 100%
+  );
+  box-shadow: 0 0 28px rgba(var(--alert-rgb, 245, 158, 11), 0.85);
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.shatter-shard {
+  position: absolute;
+  pointer-events: none;
+  background-color: rgba(12, 17, 26, 0.96);
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.03) 0px,
+    rgba(255, 255, 255, 0.03) 1px,
+    transparent 1px,
+    transparent 5px
+  );
+  box-shadow: inset 0 0 0 1px rgba(var(--alert-rgb, 245, 158, 11), 0.45);
+  will-change: transform, opacity;
+}
+
+.shatter-shard--edge-top {
+  border-top: 2.5px solid var(--alert-color, #f59e0b);
+}
+
+.shatter-shard--edge-left {
+  border-left: 3.5px solid var(--alert-color, #f59e0b);
+  background-color: rgba(18, 25, 38, 0.96);
+}
+
+.shatter-shard--text {
+  background-image:
+    linear-gradient(
+      180deg,
+      transparent 22%,
+      rgba(241, 245, 249, 0.30) 24%,
+      rgba(241, 245, 249, 0.30) 42%,
+      transparent 45%,
+      transparent 64%,
+      rgba(var(--alert-rgb, 245, 158, 11), 0.28) 66%,
+      rgba(var(--alert-rgb, 245, 158, 11), 0.28) 78%,
+      transparent 80%
+    ),
+    repeating-linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.025) 0px,
+      rgba(255, 255, 255, 0.025) 1px,
+      transparent 1px,
+      transparent 5px
+    );
+}
+
+.shatter-spark {
+  position: absolute;
+  border-radius: 2px;
+  background: #ffffff;
+  box-shadow:
+    0 0 6px #ffffff,
+    0 0 12px var(--alert-color, #f59e0b);
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* Всплывающие карточки событий — стандартная позиция в свободной верхней части экрана */
+.scene-desktop .event-toast-card {
+  top: 14%;
+  transform: translate3d(-50%, -220%, 0);
+  background: linear-gradient(135deg, #131a27 0%, #0b0f17 100%);
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.scene-desktop .event-toast-card.is-visible,
+.scene-desktop .event-toast-card.active,
+.scene-desktop .event-toast-card.show {
+  transform: translate3d(-50%, -50%, 0);
+}
+
+.scene-desktop .event-toast-card.is-leaving,
+.scene-desktop .event-toast-card.hiding,
+.scene-desktop .event-toast-card.fade-out {
+  transform: translate3d(-50%, -50%, 0) scale(0.98);
+}
+
+/* ==========================================================================
+   3. НИЖНЯЯ ЦЕНТРАЛЬНАЯ ПРИБОРНАЯ ПАНЕЛЬ ГРУЗОВИКА (TRUCK INSTRUMENT CLUSTER)
+   Scania NextGen / Volvo FH style — строго по центру прямо над тикером
+   ========================================================================== */
+.cockpit-cluster {
+  position: fixed;
+  bottom: var(--cluster-bottom);
+  left: 50%;
+  transform-origin: bottom center;
+  transform: translateX(-50%) scale(var(--cluster-scale, 1));
+  z-index: 30;
+  width: 988px;
+  height: var(--cluster-height);
+  pointer-events: none;
+  user-select: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.cluster-housing {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 220px;
+  align-items: center;
+  column-gap: 12px;
+  padding: 12px 16px 12px;
+  border-radius: var(--console-radius);
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.014) 0px,
+      rgba(255, 255, 255, 0.014) 1px,
+      transparent 1px,
+      transparent 6px
+    ),
+    linear-gradient(180deg, #161d2b 0%, #0e131e 18%, #0b0f17 100%);
+  border: var(--console-border-width) solid var(--console-metal-border);
+  box-shadow:
+    var(--console-shadow),
+    var(--console-bevel-inset);
+  overflow: hidden;
+}
+
+/* Тонкая верхняя подсветка козырька приборной панели (янтарно-золотой + циан) */
+.cluster-housing::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 36px;
+  right: 36px;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(245, 158, 11, 0.86) 35%,
+    rgba(56, 189, 248, 0.82) 65%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Внутренняя скошенная фаска приборной панели (едина с камерой и чатом) */
+.cluster-housing::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: calc(var(--console-radius) - 2px);
+  border: 1px solid rgba(56, 189, 248, 0.12);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ==========================================================================
+   4. АНАЛОГОВО-ЦИФРОВЫЕ КОЛОДЦЫ (СПИДОМЕТР И ТАХОМЕТР)
+   ========================================================================== */
+.dial-pod {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.75),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.dial-svg {
+  width: 220px;
+  height: 220px;
+  display: block;
+}
+
+/* Переключение шкал спидометра km/h <-> mph */
+.cockpit-cluster[data-speed-unit="kmh"] .dial-scale--mph {
+  display: none;
+}
+
+.cockpit-cluster[data-speed-unit="mph"] .dial-scale--kmh {
+  display: none;
+}
+
+/* Деления и подписи радиальных шкал */
+.dial-tick-major {
+  stroke: #e2e8f0;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.dial-tick-mid {
+  stroke: #94a3b8;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.dial-tick-minor {
+  stroke: rgba(148, 163, 184, 0.55);
+  stroke-width: 1.1;
+  stroke-linecap: round;
+}
+
+.dial-tick-accent {
+  stroke: var(--cockpit-accent);
+  stroke-width: 2.6;
+}
+
+.dial-tick-eco {
+  stroke: #22c55e;
+}
+
+.dial-tick-red {
+  stroke: #ef4444;
+}
+
+.dial-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  fill: #cbd5e1;
+  text-anchor: middle;
+  dominant-baseline: central;
+  letter-spacing: -0.02em;
+}
+
+.dial-num-accent {
+  fill: var(--cockpit-accent);
+  font-weight: 800;
+}
+
+.dial-num-eco {
+  fill: #4ade80;
+}
+
+.dial-num-red {
+  fill: #f87171;
+}
+
+.dial-unit-sub {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-weight: 700;
+  fill: #64748b;
+  text-anchor: middle;
+  letter-spacing: 0.08em;
+}
+
+/* Плавные физически демпфированные стрелки (строго вокруг центра 110, 110) */
+.dial-needle {
+  transform-box: view-box;
+  transform-origin: 110px 110px;
+  transform: rotate(-135deg);
+  transition: transform 0.16s cubic-bezier(0.22, 0.92, 0.34, 1.06);
+  will-change: transform;
+}
+
+.cockpit-cluster.is-offline .dial-needle {
+  opacity: 0.42;
+}
+
+/* Центральный цифровой хаб внутри каждого циферблата */
+.dial-center-display {
+  position: absolute;
+  top: 56px;
+  left: 56px;
+  width: 108px;
+  height: 108px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 35%, #151d2d 0%, #090d14 78%, #06090e 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 6px 16px rgba(0, 0, 0, 0.85),
+    inset 0 1px 1px rgba(255, 255, 255, 0.18),
+    inset 0 -3px 8px rgba(0, 0, 0, 0.72);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  z-index: 4;
+}
+
+/* Знак ограничения скорости внутри спидометра */
+.scene-desktop .dial-center-display .lt-limit-sign {
+  min-width: 26px;
+  height: 26px;
+  padding: 0 3px;
+  border-width: 2.5px;
+  font-size: 11.5px;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 1px;
+}
+
+.scene-desktop .dial-center-display .lt-speed-val {
+  font-family: var(--font-mono);
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+}
+
+.scene-desktop .dial-center-display.is-overspeed .lt-speed-val {
+  color: #ff3b4e;
+  text-shadow: 0 0 12px rgba(255, 59, 78, 0.65);
+}
+
+.scene-desktop .dial-center-display .lt-speed-unit {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+
+/* Хаб тахометра: режим КПП, передача и цифровые обороты */
+.dial-gear-mode {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 3px;
+  padding: 1px 5px;
+  margin-bottom: 1px;
+}
+
+.lt-gear-val {
+  font-family: var(--font-mono);
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--cockpit-accent);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 12px rgba(var(--cockpit-accent-rgb), 0.35);
+}
+
+.scene-desktop .dial-center-display--rpm .lt-rpm-meta {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #94a3b8;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+/* Нижние слоты циферблатов (Круиз слева, Ретардер справа) */
+.dial-bottom-slot {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scene-desktop .dial-bottom-slot .lt-pill--cruise {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 5px;
+  background: #111622;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.scene-desktop .dial-bottom-slot .lt-pill--cruise:is(.is-active, .active, .is-on) {
+  opacity: 1 !important;
+  color: #00ff66;
+  background: rgba(0, 255, 102, 0.20);
+  border-color: #00ff66;
+  box-shadow: 0 0 10px rgba(0, 255, 102, 0.50);
+  text-shadow: 0 0 6px rgba(0, 255, 102, 0.85);
+}
+
+.scene-desktop .dial-retarder-pill {
+  font-family: var(--font-mono);
+  font-size: 11px !important;
+  font-weight: 800;
+  padding: 2px 9px !important;
+  border-radius: 5px;
+  background: #111622;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  opacity: 0.36;
+}
+
+.cockpit-cluster.is-offline .lt-speed-val,
+.cockpit-cluster.is-offline .lt-gear-val {
+  color: #64748b;
+  text-shadow: none;
+}
+
+/* ==========================================================================
+   5. ЦЕНТРАЛЬНЫЙ БОРТОВОЙ ДИСПЛЕЙ (MFD — БОРТОВОЙ КОМПЬЮТЕР)
+   ========================================================================== */
+.cockpit-mfd {
+  height: 220px;
+  min-width: 0;
+  display: grid;
+  grid-template-rows: auto auto auto 1fr;
+  row-gap: 7px;
+  padding: 8px 10px 7px;
+  border-radius: 12px;
+  background: #090d14;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  box-shadow:
+    inset 0 2px 10px rgba(0, 0, 0, 0.80),
+    0 1px 0 rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+/* --- Блок 1 MFD: Полная матрица контрольных ламп (Tell-tales) --- */
+.mfd-tell-tales {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) 24px;
+  align-items: center;
+  column-gap: 6px;
+  padding: 4px 6px;
+  border-radius: 7px;
+  background: #111622;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mfd-telltale-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.mfd-telltale-row {
+  display: grid;
+  column-gap: 4px;
+  height: 22px;
+  align-items: center;
+  justify-items: center;
+}
+
+.mfd-telltale-row--lights {
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+}
+
+.mfd-telltale-row--status {
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+}
+
+.scene-desktop .lt-ind,
+.scene-desktop.is-offline .lt-ind,
+.scene-desktop .live-telemetry-panel.is-offline .lt-ind {
+  opacity: 0.22;
+  color: rgba(203, 213, 225, 0.45);
+  filter: none;
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  text-shadow: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: opacity 0.14s ease, color 0.14s ease;
+}
+
+.scene-desktop .mfd-telltale-rows .lt-ind:not(.lt-ind--text) {
+  width: 100%;
+  height: 22px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+}
+
+.scene-desktop .mfd-telltale-rows .lt-ind svg {
+  width: 18px;
+  height: 15px;
+  display: block;
+  color: inherit;
+  fill: currentColor;
+}
+
+.scene-desktop .mfd-telltale-rows .lt-ind svg [stroke] {
+  stroke: currentColor;
+}
+
+.scene-desktop .mfd-telltale-rows .lt-ind--text {
+  width: 100%;
+  height: 20px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  padding: 0 2px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.scene-desktop .lt-ind--blink {
+  font-size: 20px;
+  width: 24px;
+  height: 36px;
+  text-align: center;
+}
+
+/* Активные состояния контрольных ламп */
+.scene-desktop .lt-ind:is(.is-active, .active, .is-on, .is-warn, .is-danger) {
+  opacity: 1 !important;
+}
+
+/* Зелёные лампы: поворотники, габариты, ближний, ПТФ, круиз */
+.scene-desktop .lt-ind--green:is(.is-active, .active, .is-on, .is-warn, .is-danger),
+.scene-desktop .lt-ind--blink:is(.is-active, .active, .is-on),
+.scene-desktop #lt-ind-park:is(.is-active, .active, .is-on),
+.scene-desktop #lt-ind-low:is(.is-active, .active, .is-on),
+.scene-desktop #lt-ind-fog:is(.is-active, .active, .is-on),
+.scene-desktop #lt-ind-cruise:is(.is-active, .active, .is-on) {
+  opacity: 1 !important;
+  color: #00ff66;
+  fill: #00ff66;
+  filter: drop-shadow(0 0 6px rgba(0, 255, 102, 0.90));
+}
+
+.scene-desktop .lt-ind--blink.is-blinking {
+  color: #00ff66;
+  fill: #00ff66;
+  filter: drop-shadow(0 0 8px rgba(0, 255, 102, 0.95));
+  text-shadow: 0 0 8px rgba(0, 255, 102, 0.95);
+  animation: dashBlink 0.45s step-end infinite;
+  will-change: opacity;
+}
+
+/* Синяя лампа: дальний свет */
+.scene-desktop .lt-ind--blue:is(.is-active, .active, .is-on),
+.scene-desktop #lt-ind-high:is(.is-active, .active, .is-on) {
+  opacity: 1 !important;
+  color: #00b4ff;
+  fill: #00b4ff;
+  filter: drop-shadow(0 0 7px rgba(0, 180, 255, 0.95));
+}
+
+/* Янтарные / служебные лампы */
+.scene-desktop .lt-ind--amber:is(.is-active, .active, .is-on, .is-warn, .is-danger),
+.scene-desktop .lt-ind--cyan:is(.is-active, .active, .is-on, .is-warn, .is-danger),
+.scene-desktop #lt-ind-beacon:is(.is-active, .active, .is-on, .is-warn),
+.scene-desktop #lt-ind-wipers:is(.is-active, .active, .is-on, .is-warn),
+.scene-desktop #lt-ind-difflock:is(.is-active, .active, .is-on, .is-warn),
+.scene-desktop #lt-ind-lift-axle:is(.is-active, .active, .is-on, .is-warn),
+.scene-desktop #lt-ind-retarder:is(.is-active, .active, .is-on, .is-warn),
+.scene-desktop #lt-ind-fuel-warn:is(.is-active, .active, .is-on, .is-warn, .is-danger),
+.scene-desktop #lt-ind-rest-warn:is(.is-active, .active, .is-on, .is-warn, .is-danger),
+.scene-desktop #lt-ind-battery-warn:is(.is-active, .active, .is-on, .is-warn, .is-danger) {
+  opacity: 1 !important;
+  color: #ffb800;
+  fill: #ffb800;
+  border-color: #ffb800;
+  background: rgba(255, 184, 0, 0.20);
+  box-shadow: 0 0 8px rgba(255, 184, 0, 0.55);
+  filter: drop-shadow(0 0 5px rgba(255, 184, 0, 0.80));
+}
+
+/* Красные аварийные лампы: (P), (!), аварийка, масло, ОЖ */
+.scene-desktop .lt-ind--red:is(.is-active, .active, .is-on, .is-warn, .is-danger),
+.scene-desktop #lt-ind-hazard:is(.is-active, .active, .is-on),
+.scene-desktop #lt-ind-park-brake:is(.is-active, .active, .is-on, .is-warn, .is-danger),
+.scene-desktop #lt-ind-air-warn:is(.is-active, .active, .is-on, .is-warn, .is-danger),
+.scene-desktop #lt-ind-oil-warn:is(.is-active, .active, .is-on, .is-warn, .is-danger),
+.scene-desktop #lt-ind-water-warn:is(.is-active, .active, .is-on, .is-warn, .is-danger) {
+  opacity: 1 !important;
+  color: #ff2a3c;
+  fill: #ff2a3c;
+  border-color: #ff2a3c;
+  background: rgba(255, 42, 60, 0.26);
+  box-shadow: 0 0 10px rgba(255, 42, 60, 0.72);
+  filter: drop-shadow(0 0 6px rgba(255, 42, 60, 0.85));
+}
+
+/* --- Блок 2 MFD: Вспомогательные шкалы (Топливо, Воздух, Температуры) --- */
+.mfd-gauges-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 7px;
+}
+
+.mfd-gauge-card {
+  min-width: 0;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: #111622;
+  border: 1px solid rgba(255, 255, 255, 0.085);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mfd-gauge-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px;
+  min-width: 0;
+}
+
+.mfd-gauge-label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #94a3b8;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.mfd-gauge-val {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 800;
+  color: #f8fafc;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.mfd-bar-track {
+  width: 100%;
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.09);
+  overflow: hidden;
+}
+
+.mfd-bar-fill {
+  width: 100%;
+  height: 100%;
+  border-radius: 3px;
+  transform-origin: left center;
+  transform: scaleX(0);
+  transition: transform 0.25s ease, background-color 0.25s ease;
+  will-change: transform;
+}
+
+.mfd-bar-fill--fuel {
+  background: linear-gradient(90deg, #d97706, #ff9e1b);
+}
+
+.mfd-bar-fill--fuel.is-low {
+  background: linear-gradient(90deg, #dc2626, #ef4444);
+}
+
+.mfd-bar-fill--air {
+  background: linear-gradient(90deg, #0284c7, #38bdf8);
+}
+
+.mfd-bar-fill--air.is-low {
+  background: linear-gradient(90deg, #dc2626, #ef4444);
+}
+
+.mfd-bar-fill--temp {
+  background: linear-gradient(90deg, #16a34a, #22c55e);
+}
+
+.mfd-bar-fill--temp.is-hot {
+  background: linear-gradient(90deg, #dc2626, #ef4444);
+}
+
+.mfd-gauge-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* --- Блок 3 MFD: Педали и руль --- */
+.mfd-inputs-bar {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.25fr;
+  column-gap: 10px;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #111622;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mfd-input-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: 6px;
+  min-width: 0;
+}
+
+.mfd-input-label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #94a3b8;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.dash-input-track {
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.09);
+  overflow: hidden;
+}
+
+.dash-input-fill {
+  width: 100%;
+  height: 100%;
+  border-radius: 2px;
+  transform-origin: left center;
+  transform: scaleX(0);
+  transition: transform 0.08s linear;
+  will-change: transform;
+}
+
+.dash-input-fill--throttle {
+  background: linear-gradient(90deg, #16a34a, #22c55e);
+}
+
+.dash-input-fill--brake {
+  background: linear-gradient(90deg, #dc2626, #ef4444);
+}
+
+.dash-steer-track {
+  position: relative;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  overflow: hidden;
+}
+
+.dash-steer-track::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.30);
+  transform: translateX(-0.5px);
+}
+
+.dash-steer-knob {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 6px;
+  margin-left: -6px;
+  margin-top: -3px;
+  border-radius: 2px;
+  background: var(--cockpit-accent);
+  box-shadow: 0 0 6px rgba(var(--cockpit-accent-rgb), 0.72);
+  transform: translate3d(0, 0, 0);
+  transition: transform 0.08s linear;
+  will-change: transform;
+}
+
+/* --- Блок 4 MFD: Тягач, одометр и 3 индикатора износа --- */
+.mfd-footer {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: #111622;
+  border: 1px solid rgba(255, 255, 255, 0.085);
+  min-width: 0;
+}
+
+.mfd-truck-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.scene-desktop .truck-identity {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+
+.scene-desktop .truck-model {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: #f8fafc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.scene-desktop .truck-plate {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+}
+
+.scene-desktop .truck-odometer {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: #cbd5e1;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.mfd-health-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.scene-desktop .mfd-health-row .truck-health {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 5px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cockpit-cluster.is-offline .mfd-gauge-val,
+.cockpit-cluster.is-offline .truck-model,
+.cockpit-cluster.is-offline .truck-odometer {
+  color: #64748b;
+}
+
+.cockpit-cluster.is-offline .dash-steer-knob {
+  background: #64748b;
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   6. АДАПТИВНОСТЬ ДЛЯ 2560x1440 (2K QHD) И COMPACT VIEWPORT
+   ========================================================================== */
+@media (min-width: 2300px) {
+  :root {
+    --ticker-height: 44px;
+    --desktop-edge-margin: 32px;
+    --cluster-scale: 1.22;
+    --cluster-bottom: calc(var(--ticker-height, 44px) + 10px);
+    --cluster-actual-width: calc(var(--cluster-width, 988px) * var(--cluster-scale, 1.22));
+    --cluster-actual-half-width: calc(var(--cluster-width, 988px) * var(--cluster-scale, 1.22) / 2);
+    --cluster-actual-height: calc(var(--cluster-height, 244px) * var(--cluster-scale, 1.22));
+    --webcam-aspect: 4 / 3;
+    --webcam-actual-width: 397px;
+    --webcam-actual-height: 298px;
+    --webcam-hud-height: 34px;
+    --alert-rest-bottom: calc(var(--ticker-height, 44px) + 10px + (var(--cluster-height, 244px) * var(--cluster-scale, 1.22)) + 10px);
+  }
+
+  body.cam-aspect-4x3,
+  .scene-desktop .cam-box.cam-aspect-4x3 {
+    --webcam-aspect: 4 / 3;
+    --webcam-actual-width: 397px;
+    --webcam-actual-height: 298px;
+    --webcam-hud-height: 34px;
+  }
+
+  body.cam-aspect-16x9,
+  .scene-desktop .cam-box.cam-aspect-16x9 {
+    --webcam-aspect: 16 / 9;
+    --webcam-actual-width: 464px;
+    --webcam-actual-height: 261px;
+    --webcam-hud-height: 34px;
+  }
+
+  .top-ticker-label {
+    font-size: 12px;
+  }
+
+  .top-ticker-val {
+    font-size: 15px;
+  }
+
+  .scene-desktop .cam-box {
+    --cam-hud-height: var(--webcam-hud-height);
+  }
+
+  .scene-desktop .cam-eta-label {
+    font-size: 10.5px;
+  }
+
+  .scene-desktop .cam-eta-value {
+    font-size: 15px;
+  }
+
+  .cockpit-chat-bar {
+    height: 34px;
+    padding: 0 14px;
+  }
+
+  .cockpit-chat-heading {
+    font-size: 11.5px;
+  }
+
+  .cockpit-msg-author {
+    font-size: 14.5px;
+  }
+
+  .cockpit-msg-body {
+    font-size: 14.2px;
+  }
+
+  .scene-desktop .alert-dock,
+  .scene-desktop .stream-alert-dock {
+    width: 640px;
+  }
+
+  .scene-desktop .stream-alert-card .alert-user {
+    font-size: 26px;
+  }
+
+  .scene-desktop .stream-alert-card .alert-badge {
+    font-size: 15px;
+  }
+
+  .scene-desktop .stream-alert-card .alert-message {
+    font-size: 14.5px;
+  }
+}
+
+@media (max-width: 1750px) {
+  :root {
+    --desktop-edge-margin: 16px;
+    --cluster-scale: 0.88;
+    --cluster-actual-width: calc(var(--cluster-width, 988px) * var(--cluster-scale, 0.88));
+    --cluster-actual-half-width: calc(var(--cluster-width, 988px) * var(--cluster-scale, 0.88) / 2);
+    --cluster-actual-height: calc(var(--cluster-height, 244px) * var(--cluster-scale, 0.88));
+    --webcam-aspect: 4 / 3;
+    --webcam-actual-width: 286px;
+    --webcam-actual-height: 215px;
+    --webcam-hud-height: 28px;
+    --alert-rest-bottom: calc(var(--ticker-height, 38px) + 10px + (var(--cluster-height, 244px) * var(--cluster-scale, 0.88)) + 10px);
+  }
+
+  body.cam-aspect-4x3,
+  .scene-desktop .cam-box.cam-aspect-4x3 {
+    --webcam-aspect: 4 / 3;
+    --webcam-actual-width: 286px;
+    --webcam-actual-height: 215px;
+    --webcam-hud-height: 28px;
+  }
+
+  body.cam-aspect-16x9,
+  .scene-desktop .cam-box.cam-aspect-16x9 {
+    --webcam-aspect: 16 / 9;
+    --webcam-actual-width: 336px;
+    --webcam-actual-height: 189px;
+    --webcam-hud-height: 28px;
+  }
+}
+
+/* ==========================================================================
+   7. НАПРАВЛЯЮЩИЕ HUD AVOIDANCE MAP (?guides=1)
+   ========================================================================== */
+.guide-route-advisor {
+  top: 12px;
+  left: 420px;
+  right: 420px;
+  height: 150px;
+}
+
+.guide-mirror-left {
+  top: 16px;
+  left: 386px;
+  width: 220px;
+  height: 440px;
+}
+
+.guide-mirror-right {
+  top: 16px;
+  right: 24px;
+  width: 380px;
+  height: 540px;
+}
+
+.guide-windshield-dash {
+  top: 180px;
+  left: 396px;
+  right: 420px;
+  bottom: 306px;
+}
+
+/* ==========================================================================
+   PREVIEW BACKDROP FOR REPOSITORY SCREENSHOTS (?bg=1 | ?bg=cockpit | ?preview=1)
+   ========================================================================== */
+body.preview-backdrop {
+  background:
+    radial-gradient(ellipse at 50% 120%, rgba(245, 158, 11, 0.12) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 20%, #151e2a 0%, #0c121b 55%, #05080d 100%) !important;
+}
+
+body.preview-backdrop .cam-video-viewport {
+  background: radial-gradient(ellipse at 50% 50%, #17202d 0%, #0b1018 100%);
+}
