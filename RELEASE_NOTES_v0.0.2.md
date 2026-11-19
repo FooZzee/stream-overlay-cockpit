@@ -51,7 +51,7 @@
 
 | File Name | Size (Bytes) | MD5 Checksum | SHA-256 Checksum |
 | :--- | :--- | :--- | :--- |
-| **`ETS2-ATS-Stream-Overlay-Cockpit-v0.0.2.zip`** | `1,946,052` bytes | `fdc55da994cf7ae5042040e62d8f9898` | `e7df07316f23fc103320d2eea093a3105e2c7771b832bc591cbee585ac4fc09e` |
+| **`ETS2-ATS-Stream-Overlay-Cockpit-v0.0.2.zip`** | `1,946,089` bytes | `f0e799e14173c48e2b26025debeea022` | `35f2cba1e050c37d9deb87c99048a3e2c69a14261e02a0c461edc6b297e9ca6f` |
 
 ---
 
@@ -100,7 +100,7 @@
 
 | Имя файла | Размер (в байтах) | Контрольная сумма MD5 | Контрольная сумма SHA-256 |
 | :--- | :--- | :--- | :--- |
-| **`ETS2-ATS-Stream-Overlay-Cockpit-v0.0.2.zip`** | `1,946,052` байт | `fdc55da994cf7ae5042040e62d8f9898` | `e7df07316f23fc103320d2eea093a3105e2c7771b832bc591cbee585ac4fc09e` |
+| **`ETS2-ATS-Stream-Overlay-Cockpit-v0.0.2.zip`** | `1,946,089` байт | `f0e799e14173c48e2b26025debeea022` | `35f2cba1e050c37d9deb87c99048a3e2c69a14261e02a0c461edc6b297e9ca6f` |
 
 ---
 

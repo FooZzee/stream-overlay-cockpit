@@ -110,9 +110,9 @@ $Strings = @{
         BtnChangelog      = "📜 Changelog"
         BtnCommands       = "📖 Commands"
         FooterPkgVer      = "Package Version: v$TARGET_VER"
-        FooterObsHint     = "OBS Desktop: 1920x1080 (ets2-desktop.html) • Webcam: 325x244 px (4:3)"
-        FooterObsHint4x3  = "OBS Desktop: 1920x1080 (ets2-desktop.html) • Webcam: 325x244 px (4:3)"
-        FooterObsHint16x9 = "OBS Desktop: 1920x1080 (ets2-desktop.html) • Webcam: 384x216 px (16:9)"
+        FooterObsHint     = "OBS URL (do NOT check 'Local file'): 1920x1080 • Webcam: 325x244 px (4:3)"
+        FooterObsHint4x3  = "OBS URL (do NOT check 'Local file'): 1920x1080 • Webcam: 325x244 px (4:3)"
+        FooterObsHint16x9 = "OBS URL (do NOT check 'Local file'): 1920x1080 • Webcam: 384x216 px (16:9)"
         DlgOverlayTitle   = "Select overlay installation folder"
         DlgEts2Title      = "Select Euro Truck Simulator 2 folder (root, bin\win_x64, or plugins)"
         DlgAtsTitle       = "Select American Truck Simulator folder (root, bin\win_x64, or plugins)"
@@ -188,9 +188,9 @@ $Strings = @{
         BtnChangelog      = "📜 Список изменений"
         BtnCommands       = "📖 Список команд"
         FooterPkgVer      = "Версия пакета: v$TARGET_VER"
-        FooterObsHint     = "OBS Desktop: 1920x1080 (ets2-desktop.html) • Камера: 325x244 px (4:3)"
-        FooterObsHint4x3  = "OBS Desktop: 1920x1080 (ets2-desktop.html) • Камера: 325x244 px (4:3)"
-        FooterObsHint16x9 = "OBS Desktop: 1920x1080 (ets2-desktop.html) • Камера: 384x216 px (16:9)"
+        FooterObsHint     = "OBS URL (НЕ ставить галочку «Локальный файл»): 1920x1080 • Камера: 325x244 px (4:3)"
+        FooterObsHint4x3  = "OBS URL (НЕ ставить галочку «Локальный файл»): 1920x1080 • Камера: 325x244 px (4:3)"
+        FooterObsHint16x9 = "OBS URL (НЕ ставить галочку «Локальный файл»): 1920x1080 • Камера: 384x216 px (16:9)"
         DlgOverlayTitle   = "Выберите папку для установки оверлея"
         DlgEts2Title      = "Выберите папку Euro Truck Simulator 2 (корень игры, bin\win_x64 или plugins)"
         DlgAtsTitle       = "Выберите папку American Truck Simulator (корень игры, bin\win_x64 или plugins)"
@@ -1209,7 +1209,7 @@ $xaml = @"
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <TextBlock x:Name="txtFooterVer" Grid.Column="0" Text="Версия пакета: v0.0.2" FontSize="10.5" Foreground="#f59e0b"/>
-            <TextBlock x:Name="txtFooterObs" Grid.Column="1" Text="OBS Desktop: 1920x1080 (ets2-desktop.html) • Камера: 325x244 px (4:3)" FontSize="10.5" Foreground="#64748b"/>
+            <TextBlock x:Name="txtFooterObs" Grid.Column="1" Text="OBS URL (НЕ ставить галочку «Локальный файл»): 1920x1080 • Камера: 325x244 px (4:3)" FontSize="10.5" Foreground="#64748b"/>
         </Grid>
     </Grid>
 </Window>
