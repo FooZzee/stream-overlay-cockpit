@@ -49,7 +49,7 @@ if (-not (Test-Path (Join-Path $ProjectRoot 'ets2-desktop.html'))) {
 # 5. Константы проекта и репозитория
 $CurrentVersion = 'v0.0.3'
 $RepoOwner = 'FooZzee'
-$RepoName = 'ETS2-ATS-Cockpit-Stream-Overlay'
+$RepoName = 'stream-overlay-cockpit'
 $ApiUrl = "https://api.github.com/repos/$RepoOwner/$RepoName/releases/latest"
 $WebReleasesUrl = "https://github.com/$RepoOwner/$RepoName/releases/latest"
 $WebAllReleasesUrl = "https://github.com/$RepoOwner/$RepoName/releases"
@@ -135,7 +135,7 @@ function Get-ReleaseInfo {
         $req = [System.Net.HttpWebRequest]::Create($ApiUrl)
         $req.Method = 'GET'
         $req.Timeout = $TimeoutSec * 1000
-        $req.UserAgent = 'FooZzee-Overlay-PipBoy-Updater/1.2.2'
+        $req.UserAgent = 'FooZzee-Overlay-PipBoy-Updater/0.0.3'
         $req.Accept = 'application/vnd.github.v3+json'
 
         $resp = $req.GetResponse()

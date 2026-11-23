@@ -1,6 +1,6 @@
 # 🚛 ETS2 / ATS Stream Overlay Cockpit v0.0.2
 
-[![Release](https://img.shields.io/badge/Release-v0.0.2-brightgreen?style=flat)](https://github.com/FooZzee/ETS2-ATS-Cockpit-Stream-Overlay/releases/tag/v0.0.2)
+[![Release](https://img.shields.io/badge/Release-v0.0.2-brightgreen?style=flat)](https://github.com/FooZzee/stream-overlay-cockpit/releases/tag/v0.0.2)
 [![Platform](https://img.shields.io/badge/Platform-Windows_x64-blue?style=flat)](https://www.microsoft.com/windows)
 [![SCS SDK](https://img.shields.io/badge/SCS_SDK-v1.16-orange?style=flat)](https://modding.scssoft.com/wiki/Documentation/Engine/SDK/Telemetry)
 [![OBS Studio](https://img.shields.io/badge/OBS_Studio-28%2B-5c5cf0?style=flat)](https://obsproject.com/)
@@ -39,7 +39,7 @@
 4. **Repository Endpoint Synchronization:**
    * Centralized GitHub API endpoints preset in `config.example.js` and `scripts/installer.ps1`:
      * `githubRepo: 'FooZzee/stream-overlay-cockpit'`
-     * `githubUrl: 'https://github.com/FooZzee/ETS2-ATS-Cockpit-Stream-Overlay'`
+     * `githubUrl: 'https://github.com/FooZzee/stream-overlay-cockpit'`
      * `releasesApiUrl: 'https://api.github.com/repos/FooZzee/stream-overlay-cockpit/releases/latest'`
 
 5. **Synchronized v0.0.2 Versioning:**
@@ -88,7 +88,7 @@
 4. **Синхронизация параметров репозитория:**
    * В шаблоне `config.example.js` и мастере установки `Install-Overlay.bat` по умолчанию настроены официальные эндпоинты:
      * `githubRepo: 'FooZzee/stream-overlay-cockpit'`
-     * `githubUrl: 'https://github.com/FooZzee/ETS2-ATS-Cockpit-Stream-Overlay'`
+     * `githubUrl: 'https://github.com/FooZzee/stream-overlay-cockpit'`
      * `releasesApiUrl: 'https://api.github.com/repos/FooZzee/stream-overlay-cockpit/releases/latest'`
 
 5. **Синхронизация версий v0.0.2:**

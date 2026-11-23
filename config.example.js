@@ -1,11 +1,11 @@
 /* Copyright (c) 2026 FooZzee. All Rights Reserved. Licensed under Proprietary Freeware License. */
 /**
- * Шаблон конфигурации ETS2 / ATS Stream Overlay Cockpit v0.0.2.
+ * Шаблон конфигурации ETS2 / ATS Stream Overlay Cockpit v0.0.3.0.2.
  * Скопируйте этот файл в config.js и заполните своими данными.
  */
 window.OVERLAY_CONFIG = {
   // Метка сборки оверлея
-  version: 'v0.0.2',
+  version: 'v0.0.3',
 
   // Язык интерфейса оверлея ('ru' | 'en')
   lang: 'ru',

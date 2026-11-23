@@ -13,7 +13,7 @@
   'use strict';
 
   // 1. ТЕКУЩАЯ ВЕРСИЯ ОВЕРЛЕЯ И РЕПОЗИТОРИЙ
-  const CURRENT_VERSION = 'v0.0.2';
+  const CURRENT_VERSION = 'v0.0.3';
   const GITHUB_REPO = 'FooZzee/stream-overlay-cockpit';
   const API_URL = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
   const STORAGE_KEY_DISMISSED = 'ets2_overlay_dismissed_update';
