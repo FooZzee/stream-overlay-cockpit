@@ -62,4 +62,8 @@ First stable release of the flagship **ETS2 / ATS Stream Overlay Cockpit** serie
 * **Native FlowDocument Viewer:** In-app documentation and changelog reader with rich formatting, syntax highlighting, and zero dependency on Windows Notepad.
 
 > [!NOTE]
-> **ETS2 / ATS Stream Overlay Cockpit** is open-source software licensed under the MIT License. Consider starring the repository on GitHub or supporting the developer FooZzee!
+> **ETS2 / ATS Stream Overlay Cockpit** is open-source software Licensed under Proprietary Freeware License (All Rights Reserved). Consider starring the repository on GitHub or supporting the developer FooZzee!
+
+---
+
+Copyright (c) 2026 FooZzee. All Rights Reserved.

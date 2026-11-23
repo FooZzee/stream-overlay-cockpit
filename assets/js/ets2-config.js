@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 FooZzee. All Rights Reserved. Licensed under Proprietary Freeware License. */
 /**
  * Инициализация и безопасное слияние конфигурации для ETS2 / ATS оверлеев.
  * Читает window.OVERLAY_CONFIG из ./config.js без хардкода секретов и каналов.

@@ -1,10 +1,10 @@
 # 🚛 ETS2 / ATS Stream Overlay Cockpit v0.0.1
 
-[![Release](https://img.shields.io/badge/Release-v0.0.1-brightgreen?style=flat)](https://github.com/FooZzee/stream-overlay-cockpit/releases/tag/v0.0.1)
+[![Release](https://img.shields.io/badge/Release-v0.0.1-brightgreen?style=flat)](https://github.com/FooZzee/ETS2-ATS-Cockpit-Stream-Overlay/releases/tag/v0.0.1)
 [![Platform](https://img.shields.io/badge/Platform-Windows_x64-blue?style=flat)](https://www.microsoft.com/windows)
 [![SCS SDK](https://img.shields.io/badge/SCS_SDK-v1.16-orange?style=flat)](https://modding.scssoft.com/wiki/Documentation/Engine/SDK/Telemetry)
 [![OBS Studio](https://img.shields.io/badge/OBS_Studio-28%2B-5c5cf0?style=flat)](https://obsproject.com/)
-[![License](https://img.shields.io/badge/License-MIT-green?style=flat)](./LICENSE)
+[![License](https://img.shields.io/badge/License-All_Rights_Reserved-ef4444?style=flat)](./LICENSE)
 
 ---
 
@@ -132,6 +132,10 @@
 * **Официальный сайт:** https://foozzee.ru
 * **Twitch:** https://twitch.tv/foozzee
 * **YouTube:** https://youtube.com/@foozzee
-* **Telegram канал:** https://t.me/foozzee_stream
-* **Сообщество VK:** https://vk.com/foozzee
+* **Telegram канал:** https://t.me/foozzeestream
+* **Сообщество VK:** https://vk.ru/gtfun
 * **Поддержать разработку:** [DonationAlerts (https://www.donationalerts.com/r/foozzee)](https://www.donationalerts.com/r/foozzee)
+
+---
+
+Copyright (c) 2026 FooZzee. All Rights Reserved.

@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 FooZzee. All Rights Reserved. Licensed under Proprietary Freeware License. */
 /**
  * Строго последовательная FIFO-очередь алертов бортового компьютера ETS2 / ATS.
  * Поддерживает donate, sub, follow, raid, безопасный звук и fallback-таймер.

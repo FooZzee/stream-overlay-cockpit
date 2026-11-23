@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 FooZzee. All Rights Reserved. Licensed under Proprietary Freeware License. */
 /**
  * Шаблон конфигурации ETS2 / ATS Stream Overlay Cockpit v0.0.2.
  * Скопируйте этот файл в config.js и заполните своими данными.

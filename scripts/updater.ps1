@@ -2,6 +2,7 @@
 .SYNOPSIS
   Pip-Boy 3000 Autonomous CRT Update Terminal for ETS2 / ATS Cockpit Stream Overlay.
   Автономный терминал обновлений Pip-Boy 3000 для оверлея ETS2 / ATS.
+  ETS2 / ATS Cockpit Stream Overlay — Copyright (c) 2026 FooZzee. All Rights Reserved.
 #>
 [CmdletBinding()]
 param()
@@ -10,9 +11,12 @@ $ErrorActionPreference = 'Stop'
 
 # 1. Проверка режима STA (Single-Threaded Apartment) для корректной работы WPF
 if ([System.Threading.Thread]::CurrentThread.GetApartmentState() -ne [System.Threading.ApartmentState]::STA) {
-    $scriptPath = $MyInvocation.MyCommand.Definition
-    if (-not $scriptPath) {
-        $scriptPath = Join-Path $PSScriptRoot 'updater.ps1'
+    $scriptPath = if ($MyInvocation.MyCommand.Path -and (Test-Path -LiteralPath $MyInvocation.MyCommand.Path)) {
+        $MyInvocation.MyCommand.Path
+    } elseif ($PSScriptRoot) {
+        Join-Path $PSScriptRoot 'updater.ps1'
+    } else {
+        Join-Path (Get-Location).Path 'scripts\updater.ps1'
     }
     Start-Process -FilePath 'powershell.exe' -ArgumentList "-NoProfile -ExecutionPolicy Bypass -STA -WindowStyle Hidden -File `"$scriptPath`""
     exit
@@ -29,8 +33,8 @@ Add-Type -AssemblyName WindowsBase
 # 4. Надёжный расчёт путей к файлам проекта
 $ScriptDir = if ($PSScriptRoot) {
     $PSScriptRoot
-} elseif ($MyInvocation.MyCommand.Definition) {
-    Split-Path -Parent $MyInvocation.MyCommand.Definition
+} elseif ($MyInvocation.MyCommand.Path -and (Test-Path -LiteralPath $MyInvocation.MyCommand.Path)) {
+    Split-Path -Parent $MyInvocation.MyCommand.Path
 } else {
     (Get-Location).Path
 }
@@ -43,9 +47,9 @@ if (-not (Test-Path (Join-Path $ProjectRoot 'ets2-desktop.html'))) {
 }
 
 # 5. Константы проекта и репозитория
-$CurrentVersion = 'v0.0.2'
+$CurrentVersion = 'v0.0.3'
 $RepoOwner = 'FooZzee'
-$RepoName = 'stream-overlay-cockpit'
+$RepoName = 'ETS2-ATS-Cockpit-Stream-Overlay'
 $ApiUrl = "https://api.github.com/repos/$RepoOwner/$RepoName/releases/latest"
 $WebReleasesUrl = "https://github.com/$RepoOwner/$RepoName/releases/latest"
 $WebAllReleasesUrl = "https://github.com/$RepoOwner/$RepoName/releases"
@@ -131,7 +135,7 @@ function Get-ReleaseInfo {
         $req = [System.Net.HttpWebRequest]::Create($ApiUrl)
         $req.Method = 'GET'
         $req.Timeout = $TimeoutSec * 1000
-        $req.UserAgent = 'FooZzee-Cockpit-Overlay-Updater/0.0.2'
+        $req.UserAgent = 'FooZzee-Overlay-PipBoy-Updater/1.2.2'
         $req.Accept = 'application/vnd.github.v3+json'
 
         $resp = $req.GetResponse()
@@ -146,13 +150,6 @@ function Get-ReleaseInfo {
         $res.TagName = $data.tag_name
         $res.Body = $data.body
         $res.HtmlUrl = $data.html_url
-        if ($data.assets) {
-            $matchingAsset = $data.assets | Where-Object { $_.name -like 'ETS2-ATS-Stream-Overlay-Cockpit-*.zip' } | Select-Object -First 1
-            if ($matchingAsset) {
-                $res.AssetUrl = $matchingAsset.browser_download_url
-                $res.AssetName = $matchingAsset.name
-            }
-        }
         return $res
     } catch [System.Net.WebException] {
         $ex = $_.Exception
@@ -267,7 +264,7 @@ $xaml = @"
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                     <Border Background="#052E16" BorderBrush="#22C55E" BorderThickness="1" CornerRadius="4" Padding="8,4" Margin="0,0,10,0">
-                        <TextBlock x:Name="txtBadge" Text="ТЕКУЩАЯ: v0.0.2" FontSize="11" FontWeight="Bold" Foreground="#86EFAC"/>
+                        <TextBlock x:Name="txtBadge" Text="ТЕКУЩАЯ: v1.2.2" FontSize="11" FontWeight="Bold" Foreground="#86EFAC"/>
                     </Border>
                     <Button x:Name="btnLang" Content="🇬🇧 EN" Padding="8,4" FontSize="11" Height="26"/>
                 </StackPanel>
@@ -381,8 +378,6 @@ function Run-Check {
 
     $remoteTag = $info.TagName
     $script:LatestReleaseUrl = if ($info.HtmlUrl) { $info.HtmlUrl } else { $WebReleasesUrl }
-    $script:LatestAssetUrl = $info.AssetUrl
-    $script:LatestAssetName = $info.AssetName
 
     Log-Terminal "`r`nПодключение успешно. Ответ сервера: $remoteTag"
 
@@ -405,83 +400,6 @@ $btnCheck.Add_Click({
 })
 
 $btnUpdate.Add_Click({
-    # Если найден прямой архив релиза ETS2-ATS-Stream-Overlay-Cockpit-*.zip
-    if ($script:LatestAssetUrl) {
-        try {
-            $btnUpdate.IsEnabled = $false
-            Log-Terminal "`r`n[ROBCO PROTOCOL] Начат процесс автоматического обновления..."
-            Log-Terminal "Загрузка архива: $($script:LatestAssetName)..."
-
-            $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "CockpitOverlayUpdate_$(Get-Random)"
-            New-Item -ItemType Directory -Force -Path $tempDir | Out-Null
-            $zipPath = Join-Path $tempDir $script:LatestAssetName
-
-            [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
-            $wc = New-Object System.Net.WebClient
-            $wc.Headers.Add('User-Agent', 'FooZzee-Cockpit-Overlay-Updater/0.0.2')
-            $wc.DownloadFile($script:LatestAssetUrl, $zipPath)
-
-            Log-Terminal "Архив успешно загружен. Проверка целостности..."
-            $extractDir = Join-Path $tempDir "extracted"
-            [System.IO.Compression.ZipFile]::ExtractToDirectory($zipPath, $extractDir)
-
-            # Определяем корень распакованных файлов
-            $payloadDir = $extractDir
-            $subFolders = Get-ChildItem -Path $extractDir -Directory
-            if ($subFolders.Count -eq 1 -and (Test-Path (Join-Path $subFolders[0].FullName 'ets2-desktop.html'))) {
-                $payloadDir = $subFolders[0].FullName
-            }
-
-            Log-Terminal "Сохранение пользовательской конфигурации config.js..."
-            $currentAppDir = $PSScriptRoot
-            if (Test-Path (Join-Path $currentAppDir 'scripts')) {
-                # запущен из корня
-            } else {
-                # запущен из scripts/
-                $currentAppDir = (Get-Item $currentAppDir).Parent.FullName
-            }
-
-            $userConfigPath = Join-Path $currentAppDir 'config.js'
-            $backupConfigPath = Join-Path $tempDir 'config.user.bak'
-            if (Test-Path $userConfigPath) {
-                Copy-Item -LiteralPath $userConfigPath -Destination $backupConfigPath -Force
-                Log-Terminal "Пользовательский config.js надёжно сохранён во временный бэкап."
-            }
-
-            Log-Terminal "Обновление файлов оверлея в $currentAppDir..."
-            Get-ChildItem -Path $payloadDir -Recurse | ForEach-Object {
-                $relPath = $_.FullName.Substring($payloadDir.Length).TrimStart('\')
-                if ($relPath -ieq 'config.js') {
-                    # Пропускаем config.js чтобы не затереть пользовательские токены
-                    return
-                }
-                $targetPath = Join-Path $currentAppDir $relPath
-                if ($_.PSIsContainer) {
-                    if (-not (Test-Path $targetPath)) { New-Item -ItemType Directory -Force -Path $targetPath | Out-Null }
-                } else {
-                    $parentTarget = [System.IO.Path]::GetDirectoryName($targetPath)
-                    if (-not (Test-Path $parentTarget)) { New-Item -ItemType Directory -Force -Path $parentTarget | Out-Null }
-                    Copy-Item -LiteralPath $_.FullName -Destination $targetPath -Force
-                }
-            }
-
-            if (Test-Path $backupConfigPath) {
-                Copy-Item -LiteralPath $backupConfigPath -Destination $userConfigPath -Force
-                Log-Terminal "Пользовательский config.js восстановлен и сохранён без изменений."
-            }
-
-            Log-Terminal "======================================================================"
-            Log-Terminal "[УСПЕХ] ОБНОВЛЕНИЕ ДО ВЕРСИИ $($script:FoundNewVersion) УСПЕШНО ЗАВЕРШЕНО!"
-            Log-Terminal "Перезапустите источник 'Браузер' в OBS Studio для применения."
-            Log-Terminal "======================================================================"
-            [System.Windows.MessageBox]::Show("Оверлей успешно обновлён до версии $($script:FoundNewVersion)!`r`n`r`nВаш файл config.js сохранён.`r`nПерезапустите источник в OBS Studio.", "RobCo Industries Pip-Boy", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information) | Out-Null
-            return
-        } catch {
-            Log-Terminal "[ОШИБКА АВТООБНОВЛЕНИЯ] $($_.Exception.Message)"
-            Log-Terminal "Открытие страницы релиза в браузере..."
-        }
-    }
-
     if ($script:LatestReleaseUrl) {
         [System.Diagnostics.Process]::Start($script:LatestReleaseUrl)
     }

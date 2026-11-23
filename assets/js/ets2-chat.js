@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 FooZzee. All Rights Reserved. Licensed under Proprietary Freeware License. */
 /**
  * Модуль чата и входящих WebSocket-событий (Twitch IRC)
  * с защитой от утечек памяти и фильтрацией из window.OVERLAY_CONFIG.

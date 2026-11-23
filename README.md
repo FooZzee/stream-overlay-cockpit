@@ -4,11 +4,11 @@
 > Standalone Truck Cockpit HUD Stream Overlay & Native SCS SDK 1.16 Telemetry Plugin for OBS Studio.  
 > Автономный оверлей приборной панели тягача и нативный плагин телеметрии SCS SDK 1.16 для OBS Studio.
 
-[![Release](https://img.shields.io/badge/Release-v0.0.2-brightgreen?style=flat)](https://github.com/FooZzee/ets2-ats-stream-overlay/releases)
+[![Release](https://img.shields.io/badge/Release-v0.0.2-brightgreen?style=flat)](https://github.com/FooZzee/ETS2-ATS-Cockpit-Stream-Overlay/releases)
 [![Platform](https://img.shields.io/badge/Platform-Windows_x64-blue?style=flat)](https://www.microsoft.com/windows)
 [![SCS SDK](https://img.shields.io/badge/SCS_SDK-v1.16-orange?style=flat)](https://modding.scssoft.com/wiki/Documentation/Engine/SDK/Telemetry)
 [![OBS Studio](https://img.shields.io/badge/OBS_Studio-28%2B-5c5cf0?style=flat)](https://obsproject.com/)
-[![License](https://img.shields.io/badge/License-MIT-green?style=flat)](./LICENSE)
+[![License](https://img.shields.io/badge/License-All_Rights_Reserved-ef4444?style=flat)](./LICENSE)
 
 [![Support Project](https://img.shields.io/badge/Support_Project-FF5E5B?style=for-the-badge&logo=heart&logoColor=white)](https://www.donationalerts.com/r/foozzee)
 [![Поддержать проект](https://img.shields.io/badge/Поддержать_проект-FF5E5B?style=for-the-badge&logo=heart&logoColor=white)](https://www.donationalerts.com/r/foozzee)
@@ -233,6 +233,10 @@ Local\FooZzeeSCSTelemetry"| C["udp-bridge.ps1
 * **Сайт:** https://foozzee.ru
 * **Twitch:** https://twitch.tv/foozzee
 * **YouTube:** https://youtube.com/@foozzee
-* **Telegram:** https://t.me/foozzee_stream
-* **VK:** https://vk.com/foozzee
+* **Telegram:** https://t.me/foozzeestream
+* **VK:** https://vk.ru/gtfun
 * **Поддержать разработку:** [DonationAlerts (https://www.donationalerts.com/r/foozzee)](https://www.donationalerts.com/r/foozzee)
+
+---
+
+Copyright (c) 2026 FooZzee. All Rights Reserved.

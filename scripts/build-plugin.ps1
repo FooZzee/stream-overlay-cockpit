@@ -2,6 +2,7 @@
 .SYNOPSIS
   Локальная сборка x64 C++ плагина overlayobs_foozzee_telemetry.dll (SCS SDK 1.16)
   и автоматическая установка в папки Euro Truck Simulator 2 и American Truck Simulator.
+  ETS2 / ATS Cockpit Stream Overlay — Copyright (c) 2026 FooZzee. All Rights Reserved.
 #>
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
@@ -14,6 +15,7 @@ $pluginName  = 'overlayobs_foozzee_telemetry'
 $redistDll   = Join-Path $redistDir "$pluginName.dll"
 
 Write-Host "=================================================================" -ForegroundColor DarkGray
+Write-Host "ETS2 / ATS Cockpit Stream Overlay — Copyright (c) 2026 FooZzee. All Rights Reserved." -ForegroundColor Yellow
 Write-Host "  Сборка и установка плагина $pluginName.dll (x64)" -ForegroundColor Yellow
 Write-Host "=================================================================" -ForegroundColor DarkGray
 

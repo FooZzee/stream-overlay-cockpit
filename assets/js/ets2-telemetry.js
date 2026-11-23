@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 FooZzee. All Rights Reserved. Licensed under Proprietary Freeware License. */
 /**
  * Модуль телеметрии кабины ETS2 / ATS (overlayobs_foozzee_telemetry.dll SCS SDK 1.16 Shared Memory -> HTTP 30002),
  * локализации RU/EN, синхронизации config.js, 2-рядной торпеды и тестового режима (?test=1).

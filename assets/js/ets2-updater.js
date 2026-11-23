@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 FooZzee. All Rights Reserved. Licensed under Proprietary Freeware License. */
 /**
  * ============================================================================
  * PIP-BOY 3000 // GITHUB AUTO-UPDATE DETECTOR & CRT TERMINAL

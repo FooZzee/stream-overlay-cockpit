@@ -2,18 +2,24 @@
 .SYNOPSIS
   Bilingual (RU / EN) WPF GUI Installer for ETS2 / ATS Cockpit Telemetry Stream Overlay.
   Двуязычный (RU / EN) графический WPF-мастер установки оверлея ETS2 / ATS в стиле Cockpit HUD.
+  © 2026 FooZzee · Proprietary Freeware License (All Rights Reserved)
 #>
 [CmdletBinding()]
 param()
 
 $ErrorActionPreference = 'Stop'
 
-# 1. Проверка режима STA (Single-Threaded Apartment) для WPF
+# 1. Надёжное определение пути к скрипту и директории
+$scriptPath = if ($MyInvocation.MyCommand.Path -and (Test-Path -LiteralPath $MyInvocation.MyCommand.Path)) {
+    $MyInvocation.MyCommand.Path
+} elseif ($PSScriptRoot) {
+    Join-Path $PSScriptRoot 'installer.ps1'
+} else {
+    Join-Path (Get-Location).Path 'scripts\installer.ps1'
+}
+
+# 1.1. Проверка режима STA (Single-Threaded Apartment) для WPF
 if ([System.Threading.Thread]::CurrentThread.GetApartmentState() -ne [System.Threading.ApartmentState]::STA) {
-    $scriptPath = $MyInvocation.MyCommand.Definition
-    if (-not $scriptPath) {
-        $scriptPath = Join-Path $PSScriptRoot 'installer.ps1'
-    }
     Start-Process -FilePath 'powershell.exe' -ArgumentList "-NoProfile -ExecutionPolicy Bypass -STA -WindowStyle Hidden -File `"$scriptPath`""
     exit
 }
@@ -40,22 +46,25 @@ public class ShellNotify {
 }
 
 # 4. Пути и версии проекта
-$ScriptRoot = if ($PSScriptRoot) {
+$ScriptRoot = if ($MyInvocation.MyCommand.Path) {
+    Split-Path -Parent $MyInvocation.MyCommand.Path
+} elseif ($scriptPath -and (Test-Path -LiteralPath $scriptPath)) {
+    Split-Path -Parent $scriptPath
+} elseif ($PSScriptRoot) {
     $PSScriptRoot
-} elseif ($MyInvocation.MyCommand.Definition) {
-    Split-Path -Parent $MyInvocation.MyCommand.Definition
 } else {
     (Get-Location).Path
 }
 
-$SourceRoot = Split-Path -Parent $ScriptRoot
-if (-not (Test-Path (Join-Path $SourceRoot 'ets2-desktop.html'))) {
-    if (Test-Path (Join-Path (Get-Location).Path 'ets2-desktop.html')) {
-        $SourceRoot = (Get-Location).Path
-    }
+$SourceRoot = if (Test-Path (Join-Path $ScriptRoot 'ets2-desktop.html')) {
+    $ScriptRoot
+} elseif (Test-Path (Join-Path (Split-Path -Parent $ScriptRoot) 'ets2-desktop.html')) {
+    Split-Path -Parent $ScriptRoot
+} else {
+    (Get-Location).Path
 }
 $RedistDll  = Join-Path $SourceRoot 'redist\overlayobs_foozzee_telemetry.dll'
-$TARGET_VER = '0.0.2'
+$TARGET_VER = '0.0.1'
 
 # 5. Определение языка системы по умолчанию
 $DefaultLang = if ([System.Globalization.CultureInfo]::CurrentUICulture.TwoLetterISOLanguageName -eq 'ru') { 'ru' } else { 'en' }
@@ -85,14 +94,27 @@ $Strings = @{
         RbCam4x3Sub       = "Outer: 325×244 px (1080p) • 397×298 px (1440p) • Full cluster height match"
         RbCam16x9         = "16:9 — Widescreen Frame (384×216 px)"
         RbCam16x9Sub      = "Outer: 384×216 px (1080p) • 464×261 px (1440p) • Top cluster edge match"
-        GrpProfile        = "4. Streamer Profile (written to config.js)"
+        GrpCockpitTheme   = "4. Cockpit Dashboard Theme (select visual style)"
+        LblCockpitTheme   = "4. Cockpit Dashboard Theme (select visual style)"
+        HintCockpitTheme  = "Choose between the classic cluster or the full-width Torpedo Pro dashboard with 8 analog needle mini-gauges."
+        RbThemeClassic    = "Classic Cockpit — Scania/Volvo Instrument Cluster"
+        RbThemeClassicSub = "Compact cluster (988 px) • Center MFD • Speedometer & Tachometer"
+        RbThemeTorpedo    = "Torpedo Pro Cockpit — Full-Width Automotive Dashboard"
+        RbThemeTorpedoSub = "Wide console (1080 px) • 8 Analog Mini-Gauges (Air, Fuel, Temps, Oil, Batt) • Vertical Pedals • Ice-Blue Rim"
+        RbThemeScania     = "Scania Touring — Scandinavian Coach Instrument Cluster"
+        RbThemeScaniaSub  = "Sculpted cowl (1020 px) • Satin Aluminum Bezels • Green Eco Zone (10-15) • Scania ICL Display"
+        RbThemeMan        = "MAN Lion's Coach — German Faceted Coach Instrument Cluster"
+        RbThemeManSub     = "Faceted cowl (1040 px) • Red MAN Line • Vertical Segmented LED Bars • TipMatic TFT"
+        RbThemeVolvo      = "Volvo 9700 DD — Scandinavian Double Decker Instrument Cluster"
+        RbThemeVolvoSub   = "Dynamic cluster (1024 px) • Center speed ring • Curved RPM arc • I-Shift"
+        GrpProfile        = "5. Streamer Profile (written to config.js)"
         LblDriver         = "Streamer Nickname:"
         LblTwitch         = "Twitch Channel:"
         LblDaToken        = "DonationAlerts Secret Token (optional):"
         HintDaToken       = "Enables live donation alerts on the dashboard (DonationAlerts -> Settings -> Secret Token)"
         BtnShowToken      = "Show"
         BtnHideToken      = "Hide"
-        GrpOptions        = "5. Shortcuts & Finish Options"
+        GrpOptions        = "6. Shortcuts & Finish Options"
         ChkShortcut       = "Create Desktop Shortcut ('ETS2-ATS Overlay Bridge')"
         ChkUpdateShortcut = "Create Update Checker (Pip-Boy 3000) shortcut on Desktop"
         ChkOpenFolder     = "Open installation folder after setup"
@@ -109,10 +131,10 @@ $Strings = @{
         LinkVk            = "VK"
         BtnChangelog      = "📜 Changelog"
         BtnCommands       = "📖 Commands"
-        FooterPkgVer      = "Package Version: v$TARGET_VER"
-        FooterObsHint     = "OBS URL (do NOT check 'Local file'): 1920x1080 • Webcam: 325x244 px (4:3)"
-        FooterObsHint4x3  = "OBS URL (do NOT check 'Local file'): 1920x1080 • Webcam: 325x244 px (4:3)"
-        FooterObsHint16x9 = "OBS URL (do NOT check 'Local file'): 1920x1080 • Webcam: 384x216 px (16:9)"
+        FooterPkgVer      = "Package Version: v$TARGET_VER • © 2026 FooZzee · Proprietary Freeware License (All Rights Reserved)"
+        FooterObsHint     = "OBS Desktop: 1920x1080 (ets2-desktop.html) • Webcam: 325x244 px (4:3)"
+        FooterObsHint4x3  = "OBS Desktop: 1920x1080 (ets2-desktop.html) • Webcam: 325x244 px (4:3)"
+        FooterObsHint16x9 = "OBS Desktop: 1920x1080 (ets2-desktop.html) • Webcam: 384x216 px (16:9)"
         DlgOverlayTitle   = "Select overlay installation folder"
         DlgEts2Title      = "Select Euro Truck Simulator 2 folder (root, bin\win_x64, or plugins)"
         DlgAtsTitle       = "Select American Truck Simulator folder (root, bin\win_x64, or plugins)"
@@ -131,9 +153,9 @@ $Strings = @{
         StatusDaOk        = "Configured [OK]"
         StatusDaSkipped   = "Skipped (can be added later in config.js)"
         DoneObsHeader     = "OBS STUDIO CONFIGURATION & LAUNCH"
-        DoneObsBody       = "• In 'Browser' source properties, DO NOT check 'Local file' (so URL aspect ratio parameters work). Paste the path directly into the URL field: {0}\ets2-desktop.html (or with ?cam=4x3 / ?cam=16x9)`r`n• Webcam Source (4:3): 325x244 px @ 1080p | 397x298 px @ 1440p (layer below overlay)`r`n• Launch 'ETS2-ATS Overlay Bridge' (start-telemetry.bat) before starting your stream."
-        DoneObsBody4x3    = "• In 'Browser' source properties, DO NOT check 'Local file' (so URL aspect ratio parameters work). Paste the path directly into the URL field: {0}\ets2-desktop.html (or with ?cam=4x3)`r`n• Webcam Source (4:3): 325x244 px @ 1080p | 397x298 px @ 1440p (layer below overlay)`r`n• Launch 'ETS2-ATS Overlay Bridge' (start-telemetry.bat) before starting your stream."
-        DoneObsBody16x9   = "• In 'Browser' source properties, DO NOT check 'Local file' (so URL aspect ratio parameters work). Paste the path directly into the URL field: {0}\ets2-desktop.html?cam=16x9`r`n• Webcam Source (16:9): 384x216 px @ 1080p | 464x261 px @ 1440p (layer below overlay)`r`n• Launch 'ETS2-ATS Overlay Bridge' (start-telemetry.bat) before starting your stream."
+        DoneObsBody       = "• Desktop Browser Source: 1920x1080 -> ets2-desktop.html`r`n• Webcam Source (4:3): 325x244 px @ 1080p | 397x298 px @ 1440p (layer below overlay)`r`n• Launch 'ETS2-ATS Overlay Bridge' (start-telemetry.bat) before starting your stream."
+        DoneObsBody4x3    = "• Desktop Browser Source: 1920x1080 -> ets2-desktop.html`r`n• Webcam Source (4:3): 325x244 px @ 1080p | 397x298 px @ 1440p (layer below overlay)`r`n• Launch 'ETS2-ATS Overlay Bridge' (start-telemetry.bat) before starting your stream."
+        DoneObsBody16x9   = "• Desktop Browser Source: 1920x1080 -> ets2-desktop.html`r`n• Webcam Source (16:9): 384x216 px @ 1080p | 464x261 px @ 1440p (layer below overlay)`r`n• Launch 'ETS2-ATS Overlay Bridge' (start-telemetry.bat) before starting your stream."
         BtnFinishClose    = "Finish & Close"
         DocChangelogTitle = "ETS2 / ATS Stream Overlay Cockpit — Version History"
         DocCommandsTitle  = "ETS2 / ATS Stream Overlay Cockpit — Commands Reference"
@@ -163,14 +185,27 @@ $Strings = @{
         RbCam4x3Sub       = "Габариты: 325×244 px (1080p) • 397×298 px (1440p) • Полная высота приборной панели"
         RbCam16x9         = "16:9 — Широкоформатный кадр (384×216 px)"
         RbCam16x9Sub      = "Габариты: 384×216 px (1080p) • 464×261 px (1440p) • Выравнивание по верхней кромке"
-        GrpProfile        = "4. Профиль стримера (записывается в config.js)"
+        GrpCockpitTheme   = "4. Тема оформления приборной панели тягача"
+        LblCockpitTheme   = "4. Тема оформления приборной панели тягача"
+        HintCockpitTheme  = "Выберите между классическим компактным щитком и новой полноразмерной торпедой с 8 стрелочными мини-приборами."
+        RbThemeClassic    = "Классическая (Classic) — Щиток приборов Scania/Volvo"
+        RbThemeClassicSub = "Компактный щиток (988 px) • Центральный MFD • Спидометр и тахометр"
+        RbThemeTorpedo    = "Торпеда Про (Torpedo Pro) — Полноразмерная автомобильная торпеда"
+        RbThemeTorpedoSub = "Широкая консоль (1080 px) • 8 стрелочных мини-приборов (Воздух, Топливо, ОЖ, Масло, АКБ) • Вертикальные педали • Неон Ice-Blue"
+        RbThemeScania     = "Scania Touring — Скандинавская приборная панель Scania"
+        RbThemeScaniaSub  = "Скульптурный козырёк (1020 px) • Сатиновые кольца • Эко-зона Scania (10-15) • Дисплей Scania ICL"
+        RbThemeMan        = "MAN Lion's Coach — Немецкая приборная панель MAN"
+        RbThemeManSub     = "Гранёный козырёк (1040 px) • Красная линия MAN • Вертикальные LED-шкалы • Дисплей TipMatic"
+        RbThemeVolvo      = "Volvo 9700 DD — Автобусная панель Volvo Double Decker"
+        RbThemeVolvoSub   = "Центр-доминантный щиток (1024 px) • Большое кольцо спидометра • Дуга тахометра • I-Shift"
+        GrpProfile        = "5. Профиль стримера (записывается в config.js)"
         LblDriver         = "Никнейм стримера:"
         LblTwitch         = "Канал Twitch:"
         LblDaToken        = "Секретный токен DonationAlerts (необязательно):"
         HintDaToken       = "Для показа донатов на торпеде (DonationAlerts -> Настройки аккаунта -> Секретный токен)"
         BtnShowToken      = "Показать"
         BtnHideToken      = "Скрыть"
-        GrpOptions        = "5. Ярлыки и параметры"
+        GrpOptions        = "6. Ярлыки и параметры"
         ChkShortcut       = "Создать ярлык на Рабочем столе ('ETS2-ATS Overlay Bridge')"
         ChkUpdateShortcut = "Создать ярлык проверки обновлений (Pip-Boy 3000) на Рабочем столе"
         ChkOpenFolder     = "Открыть папку установки после завершения"
@@ -187,10 +222,10 @@ $Strings = @{
         LinkVk            = "VK"
         BtnChangelog      = "📜 Список изменений"
         BtnCommands       = "📖 Список команд"
-        FooterPkgVer      = "Версия пакета: v$TARGET_VER"
-        FooterObsHint     = "OBS URL (НЕ ставить галочку «Локальный файл»): 1920x1080 • Камера: 325x244 px (4:3)"
-        FooterObsHint4x3  = "OBS URL (НЕ ставить галочку «Локальный файл»): 1920x1080 • Камера: 325x244 px (4:3)"
-        FooterObsHint16x9 = "OBS URL (НЕ ставить галочку «Локальный файл»): 1920x1080 • Камера: 384x216 px (16:9)"
+        FooterPkgVer      = "Версия пакета: v$TARGET_VER • © 2026 FooZzee · Proprietary Freeware License (All Rights Reserved)"
+        FooterObsHint     = "OBS Desktop: 1920x1080 (ets2-desktop.html) • Камера: 325x244 px (4:3)"
+        FooterObsHint4x3  = "OBS Desktop: 1920x1080 (ets2-desktop.html) • Камера: 325x244 px (4:3)"
+        FooterObsHint16x9 = "OBS Desktop: 1920x1080 (ets2-desktop.html) • Камера: 384x216 px (16:9)"
         DlgOverlayTitle   = "Выберите папку для установки оверлея"
         DlgEts2Title      = "Выберите папку Euro Truck Simulator 2 (корень игры, bin\win_x64 или plugins)"
         DlgAtsTitle       = "Выберите папку American Truck Simulator (корень игры, bin\win_x64 или plugins)"
@@ -209,9 +244,9 @@ $Strings = @{
         StatusDaOk        = "Настроено [OK]"
         StatusDaSkipped   = "Пропущено (можно добавить позже в config.js)"
         DoneObsHeader     = "ПАРАМЕТРЫ OBS STUDIO И ЗАПУСК"
-        DoneObsBody       = "• В настройках источника «Браузер» НЕ ставьте галочку «Локальный файл» (иначе не будут работать URL-параметры пропорций камеры). Вставьте путь в поле URL: {0}\ets2-desktop.html (или с ?cam=4x3 / ?cam=16x9)`r`n• Веб-камера (4:3): 325x244 px @ 1080p | 397x298 px @ 1440p (слой ниже оверлея)`r`n• Перед стримом запустите ярлык 'ETS2-ATS Overlay Bridge' (start-telemetry.bat)."
-        DoneObsBody4x3    = "• В настройках источника «Браузер» НЕ ставьте галочку «Локальный файл» (иначе не будут работать URL-параметры пропорций камеры). Вставьте путь в поле URL: {0}\ets2-desktop.html (или с ?cam=4x3)`r`n• Веб-камера (4:3): 325x244 px @ 1080p | 397x298 px @ 1440p (слой ниже оверлея)`r`n• Перед стримом запустите ярлык 'ETS2-ATS Overlay Bridge' (start-telemetry.bat)."
-        DoneObsBody16x9   = "• В настройках источника «Браузер» НЕ ставьте галочку «Локальный файл» (иначе не будут работать URL-параметры пропорций камеры). Вставьте путь в поле URL: {0}\ets2-desktop.html?cam=16x9`r`n• Веб-камера (16:9): 384x216 px @ 1080p | 464x261 px @ 1440p (слой ниже оверлея)`r`n• Перед стримом запустите ярлык 'ETS2-ATS Overlay Bridge' (start-telemetry.bat)."
+        DoneObsBody       = "• Desktop-сцена: 1920x1080 -> ets2-desktop.html`r`n• Веб-камера (4:3): 325x244 px @ 1080p | 397x298 px @ 1440p (слой ниже оверлея)`r`n• Перед стримом запустите ярлык 'ETS2-ATS Overlay Bridge' (start-telemetry.bat)."
+        DoneObsBody4x3    = "• Desktop-сцена: 1920x1080 -> ets2-desktop.html`r`n• Веб-камера (4:3): 325x244 px @ 1080p | 397x298 px @ 1440p (слой ниже оверлея)`r`n• Перед стримом запустите ярлык 'ETS2-ATS Overlay Bridge' (start-telemetry.bat)."
+        DoneObsBody16x9   = "• Desktop-сцена: 1920x1080 -> ets2-desktop.html`r`n• Веб-камера (16:9): 384x216 px @ 1080p | 464x261 px @ 1440p (слой ниже оверлея)`r`n• Перед стримом запустите ярлык 'ETS2-ATS Overlay Bridge' (start-telemetry.bat)."
         BtnFinishClose    = "Готово"
         DocChangelogTitle = "ETS2 / ATS Stream Overlay — История изменений"
         DocCommandsTitle  = "ETS2 / ATS Stream Overlay — Справочник команд"
@@ -360,7 +395,6 @@ function Copy-OverlayDirectory {
         'ets2-desktop.html',
         'config.example.js',
         'start-telemetry.bat',
-        'Start-Overlay.bat',
         'Install-Overlay.bat',
         'Update-Overlay.bat',
         'build-and-install-plugin.bat',
@@ -373,7 +407,7 @@ function Copy-OverlayDirectory {
         'commands.md',
         'commands.en.md',
         'commands.ru.md',
-        'RELEASE_NOTES_v0.0.2.md',
+        'RELEASE_NOTES_v1.2.2.md',
         'LICENSE',
         '.gitignore'
     )
@@ -407,11 +441,13 @@ function Build-ConfigJsContent {
         [string]$DriverName,
         [string]$TwitchName,
         [string]$DonationAlertsToken,
-        [string]$WebcamAspect = '4:3'
+        [string]$WebcamAspect = '4:3',
+        [string]$CockpitTheme = 'classic'
     )
 
     $safeLang     = if ($SelectedLang -eq 'ru') { 'ru' } else { 'en' }
     $safeAspect   = if ($WebcamAspect -eq '16:9') { '16:9' } else { '4:3' }
+    $safeTheme    = if ($CockpitTheme -eq 'volvo-9700-dd') { 'volvo-9700-dd' } elseif ($CockpitTheme -eq 'man-lions-coach') { 'man-lions-coach' } elseif ($CockpitTheme -eq 'scania-touring') { 'scania-touring' } elseif ($CockpitTheme -eq 'torpedo-pro') { 'torpedo-pro' } else { 'classic' }
     $driverOut    = if ([string]::IsNullOrWhiteSpace($DriverName)) { 'STREAMER' } else { $DriverName.Trim() }
     $twEnabled    = if ([string]::IsNullOrWhiteSpace($TwitchName)) { 'false' } else { 'true' }
     $cleanDaToken = ([string]$DonationAlertsToken).Trim()
@@ -435,12 +471,6 @@ window.OVERLAY_CONFIG = {
 
   // Set true for verbose console diagnostics & ?test=1 mode
   debug: false,
-
-  // Auto-update checker via GitHub Releases
-  checkUpdates: true,
-  githubRepo: 'FooZzee/stream-overlay-cockpit',
-  githubUrl: 'https://github.com/FooZzee/stream-overlay-cockpit',
-  releasesApiUrl: 'https://api.github.com/repos/FooZzee/stream-overlay-cockpit/releases/latest',
 
   channels: {
     twitch: {
@@ -493,6 +523,9 @@ window.OVERLAY_CONFIG = {
     cockpitAccentColor: ''
   },
 
+  // Тема приборной панели тягача ('classic' | 'torpedo-pro')
+  cockpitTheme: '$safeTheme',
+
   // Рамка веб-камеры (ETS2 / ATS: '4:3' | '16:9')
   webcamAspect: '$safeAspect',
 
@@ -536,6 +569,30 @@ window.OVERLAY_CONFIG = {
   }
 };
 "@
+}
+
+function Update-ExistingConfigJsCockpitTheme {
+    param(
+        [string]$ConfigPath,
+        [string]$CockpitTheme = 'classic'
+    )
+    if (-not (Test-Path -LiteralPath $ConfigPath)) { return }
+    try {
+        $content = [System.IO.File]::ReadAllText($ConfigPath, [System.Text.Encoding]::UTF8)
+        $safeTheme = if ($CockpitTheme -eq 'volvo-9700-dd') { 'volvo-9700-dd' } elseif ($CockpitTheme -eq 'man-lions-coach') { 'man-lions-coach' } elseif ($CockpitTheme -eq 'scania-touring') { 'scania-touring' } elseif ($CockpitTheme -eq 'torpedo-pro') { 'torpedo-pro' } else { 'classic' }
+
+        if ($content -match 'cockpitTheme\s*:\s*[''"][^''"]*[''"]') {
+            $content = [regex]::Replace($content, 'cockpitTheme\s*:\s*[''"][^''"]*[''"]', "cockpitTheme: '$safeTheme'")
+        } elseif ($content -match '(?m)^\s*theme\s*:\s*\{') {
+            $content = [regex]::Replace($content, '(?m)^\s*theme\s*:\s*\{', "  cockpitTheme: '$safeTheme',`r`n  theme: {")
+        } elseif ($content -match '(?m)^\s*webcamAspect\s*:\s*') {
+            $content = [regex]::Replace($content, '(?m)^\s*webcamAspect\s*:\s*', "  cockpitTheme: '$safeTheme',`r`n  webcamAspect: ")
+        }
+
+        [System.IO.File]::WriteAllText($ConfigPath, $content, [System.Text.Encoding]::UTF8)
+    } catch {
+        Write-Warning "Could not update cockpitTheme in existing config.js: $_"
+    }
 }
 
 function Update-ExistingConfigJsWebcamAspect {
@@ -984,10 +1041,10 @@ $xaml = @"
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBlock x:Name="txtHeaderTitle" Text="ETS2 / ATS STREAM OVERLAY COCKPIT" FontWeight="Bold" FontSize="15" Foreground="#f59e0b" VerticalAlignment="Center"/>
                         <Border Background="#2a1d08" BorderBrush="#f59e0b" BorderThickness="1" CornerRadius="6" Padding="6,1" Margin="10,0,0,0" VerticalAlignment="Center">
-                            <TextBlock x:Name="txtBadgeVer" Text="v0.0.2" FontWeight="Bold" FontSize="11" Foreground="#fbbf24"/>
+                            <TextBlock x:Name="txtBadgeVer" Text="v0.0.1" FontWeight="Bold" FontSize="11" Foreground="#fbbf24"/>
                         </Border>
                     </StackPanel>
-                    <TextBlock x:Name="txtHeaderSub" Text="2-Row Cockpit HUD • Native SCS SDK 1.16 Telemetry • Twitch Chat &amp; Alerts" FontSize="11" Foreground="#94a3b8" Margin="0,2,0,0"/>
+                    <TextBlock x:Name="txtHeaderSub" Text="2-Row Cockpit HUD • Native SCS SDK 1.16 Telemetry • © 2026 FooZzee (All Rights Reserved)" FontSize="11" Foreground="#94a3b8" Margin="0,2,0,0"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
@@ -998,7 +1055,7 @@ $xaml = @"
 
         <!-- МОДУЛЬНЫЕ СЕКЦИИ УСТАНОВКИ (КОМПАКТНЫЙ ЛАЙАУТ БЕЗ СКРОЛЛА) -->
         <StackPanel Grid.Row="1">
-            <!-- 1. Папка установки оверлея (По умолчанию C:\Stream_Overlay_Cockpit) -->
+            <!-- 1. Папка установки оверлея (По умолчанию C:\Stream _Overlay _Cockpit) -->
             <Border Background="#151b24" BorderBrush="#2a3444" BorderThickness="1" CornerRadius="8" Padding="12,6" Margin="0,0,0,5">
                 <StackPanel>
                     <TextBlock x:Name="lblInstallDir" Text="1. Папка установки оверлея" FontWeight="Bold" FontSize="15" Foreground="#f59e0b" Margin="0,0,0,3"/>
@@ -1007,7 +1064,7 @@ $xaml = @"
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBox x:Name="txtInstallDir" Grid.Column="0" Height="26" Text="C:\Stream_Overlay_Cockpit"/>
+                        <TextBox x:Name="txtInstallDir" Grid.Column="0" Height="26" Text="C:\Stream _Overlay _Cockpit"/>
                         <Button x:Name="btnBrowseInstall" Style="{StaticResource BtnBase}" Grid.Column="1" Content="Обзор..." Margin="6,0,0,0" Height="26"/>
                     </Grid>
                 </StackPanel>
@@ -1079,10 +1136,72 @@ $xaml = @"
                 </StackPanel>
             </Border>
 
-            <!-- 4. Профиль стримера -->
+            <!-- 4. Тема приборной панели -->
             <Border Background="#151b24" BorderBrush="#2a3444" BorderThickness="1" CornerRadius="8" Padding="12,6" Margin="0,0,0,5">
                 <StackPanel>
-                    <TextBlock x:Name="lblProfile" Text="4. Профиль стримера (записывается в config.js)" FontWeight="Bold" FontSize="15" Foreground="#f59e0b" Margin="0,0,0,3"/>
+                    <TextBlock x:Name="lblCockpitThemeHeader" Text="4. Тема оформления приборной панели тягача" FontWeight="Bold" FontSize="15" Foreground="#f59e0b" Margin="0,0,0,2"/>
+                    <TextBlock x:Name="lblCockpitThemeHint" Text="Выберите между классическим компактным щитком и новой полноразмерной торпедой с 8 стрелочными мини-приборами." FontSize="10.5" Foreground="#94a3b8" Margin="0,0,0,5"/>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="6"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="6"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Карточка 1: Классическая -->
+                        <Border Grid.Row="0" Grid.Column="0" Background="#0e141d" BorderBrush="#2a3444" BorderThickness="1" CornerRadius="6" Padding="10,6">
+                            <StackPanel>
+                                <RadioButton x:Name="rbThemeClassic" GroupName="CockpitTheme" Content="Классическая (Classic) — Щиток Scania/Volvo" IsChecked="True" FontSize="12" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="lblThemeClassicSub" Text="Компактный щиток (988 px) • Центральный MFD • Спидометр и тахометр" FontSize="10" Foreground="#64748b" Margin="22,2,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Карточка 2: Торпеда Про -->
+                        <Border Grid.Row="0" Grid.Column="2" Background="#0e141d" BorderBrush="#2a3444" BorderThickness="1" CornerRadius="6" Padding="10,6">
+                            <StackPanel>
+                                <RadioButton x:Name="rbThemeTorpedo" GroupName="CockpitTheme" Content="Торпеда Про (Torpedo Pro) — Полноразмерная торпеда" FontSize="12" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="lblThemeTorpedoSub" Text="Широкая консоль (1080 px) • 8 стрелочных мини-приборов • Вертикальные педали" FontSize="10" Foreground="#64748b" Margin="22,2,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Карточка 3: Scania Touring -->
+                        <Border Grid.Row="2" Grid.Column="0" Background="#0e141d" BorderBrush="#2a3444" BorderThickness="1" CornerRadius="6" Padding="10,6">
+                            <StackPanel>
+                                <RadioButton x:Name="rbThemeScania" GroupName="CockpitTheme" Content="Scania Touring — Автобусная панель Scania" FontSize="12" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="lblThemeScaniaSub" Text="Скульптурный козырёк (1020 px) • Сатиновые кольца • Эко-зона Scania (10-15)" FontSize="10" Foreground="#64748b" Margin="22,2,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Карточка 4: MAN Lion's Coach -->
+                        <Border Grid.Row="2" Grid.Column="2" Background="#0e141d" BorderBrush="#2a3444" BorderThickness="1" CornerRadius="6" Padding="10,6">
+                            <StackPanel>
+                                <RadioButton x:Name="rbThemeMan" GroupName="CockpitTheme" Content="MAN Lion's Coach — Автобусная панель MAN" FontSize="12" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="lblThemeManSub" Text="Гранёный козырёк (1040 px) • Красная линия MAN • Вертикальные LED-шкалы" FontSize="10" Foreground="#64748b" Margin="22,2,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Карточка 5: Volvo 9700 Double Decker -->
+                        <Border Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3" Background="#0e141d" BorderBrush="#2a3444" BorderThickness="1" CornerRadius="6" Padding="10,6">
+                            <StackPanel>
+                                <RadioButton x:Name="rbThemeVolvo" GroupName="CockpitTheme" Content="Volvo 9700 DD — Автобусная панель Volvo Double Decker" FontSize="12" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="lblThemeVolvoSub" Text="Центр-доминантный щиток (1024 px) • Большое кольцо спидометра • Дуга тахометра • I-Shift" FontSize="10" Foreground="#64748b" Margin="22,2,0,0"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- 5. Профиль стримера -->
+            <Border Background="#151b24" BorderBrush="#2a3444" BorderThickness="1" CornerRadius="8" Padding="12,6" Margin="0,0,0,5">
+                <StackPanel>
+                    <TextBlock x:Name="lblProfile" Text="5. Профиль стримера (записывается в config.js)" FontWeight="Bold" FontSize="15" Foreground="#f59e0b" Margin="0,0,0,3"/>
                     <Grid Margin="0,0,0,4">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -1115,7 +1234,7 @@ $xaml = @"
             <!-- 5. Ярлыки и параметры (Включая ярлык Pip-Boy 3000) -->
             <Border Background="#151b24" BorderBrush="#2a3444" BorderThickness="1" CornerRadius="8" Padding="12,6" Margin="0,0,0,5">
                 <StackPanel>
-                    <TextBlock x:Name="lblOptions" Text="5. Ярлыки и параметры" FontWeight="Bold" FontSize="15" Foreground="#f59e0b" Margin="0,0,0,3"/>
+                    <TextBlock x:Name="lblOptions" Text="6. Ярлыки и параметры" FontWeight="Bold" FontSize="15" Foreground="#f59e0b" Margin="0,0,0,3"/>
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -1208,8 +1327,8 @@ $xaml = @"
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <TextBlock x:Name="txtFooterVer" Grid.Column="0" Text="Версия пакета: v0.0.2" FontSize="10.5" Foreground="#f59e0b"/>
-            <TextBlock x:Name="txtFooterObs" Grid.Column="1" Text="OBS URL (НЕ ставить галочку «Локальный файл»): 1920x1080 • Камера: 325x244 px (4:3)" FontSize="10.5" Foreground="#64748b"/>
+            <TextBlock x:Name="txtFooterVer" Grid.Column="0" Text="Версия пакета: v1.2.2" FontSize="10.5" Foreground="#f59e0b"/>
+            <TextBlock x:Name="txtFooterObs" Grid.Column="1" Text="OBS Desktop: 1920x1080 (ets2-desktop.html) • Камера: 325x244 px (4:3)" FontSize="10.5" Foreground="#64748b"/>
         </Grid>
     </Grid>
 </Window>
@@ -1257,6 +1376,18 @@ $rbCam4x3           = $win.FindName('rbCam4x3')
 $lblCam4x3Sub       = $win.FindName('lblCam4x3Sub')
 $rbCam16x9          = $win.FindName('rbCam16x9')
 $lblCam16x9Sub      = $win.FindName('lblCam16x9Sub')
+$lblCockpitThemeHeader = $win.FindName('lblCockpitThemeHeader')
+$lblCockpitThemeHint   = $win.FindName('lblCockpitThemeHint')
+$rbThemeClassic        = $win.FindName('rbThemeClassic')
+$lblThemeClassicSub    = $win.FindName('lblThemeClassicSub')
+$rbThemeTorpedo        = $win.FindName('rbThemeTorpedo')
+$rbThemeScania         = $win.FindName('rbThemeScania')
+$rbThemeMan            = $win.FindName('rbThemeMan')
+$rbThemeVolvo          = $win.FindName('rbThemeVolvo')
+$lblThemeScaniaSub     = $win.FindName('lblThemeScaniaSub')
+$lblThemeManSub        = $win.FindName('lblThemeManSub')
+$lblThemeVolvoSub      = $win.FindName('lblThemeVolvoSub')
+$lblThemeTorpedoSub    = $win.FindName('lblThemeTorpedoSub')
 $lblOptions         = $win.FindName('lblOptions')
 $chkShortcut      = $win.FindName('chkShortcut')
 $chkUpdateShortcut= $win.FindName('chkUpdateShortcut')
@@ -1302,6 +1433,18 @@ function Update-Localization {
     if ($lblCam4x3Sub)       { $lblCam4x3Sub.Text       = Get-Text 'RbCam4x3Sub' }
     if ($rbCam16x9)          { $rbCam16x9.Content       = Get-Text 'RbCam16x9' }
     if ($lblCam16x9Sub)      { $lblCam16x9Sub.Text      = Get-Text 'RbCam16x9Sub' }
+    if ($lblCockpitThemeHeader) { $lblCockpitThemeHeader.Text = Get-Text 'GrpCockpitTheme' }
+    if ($lblCockpitThemeHint)   { $lblCockpitThemeHint.Text   = Get-Text 'HintCockpitTheme' }
+    if ($rbThemeClassic)        { $rbThemeClassic.Content     = Get-Text 'RbThemeClassic' }
+    if ($lblThemeClassicSub)    { $lblThemeClassicSub.Text    = Get-Text 'RbThemeClassicSub' }
+    if ($rbThemeTorpedo)        { $rbThemeTorpedo.Content     = Get-Text 'RbThemeTorpedo' }
+if ($rbThemeScania)         { $rbThemeScania.Content      = Get-Text 'RbThemeScania' }
+if ($rbThemeMan)            { $rbThemeMan.Content         = Get-Text 'RbThemeMan' }
+if ($rbThemeVolvo)          { $rbThemeVolvo.Content       = Get-Text 'RbThemeVolvo' }
+if ($lblThemeScaniaSub)     { $lblThemeScaniaSub.Text     = Get-Text 'RbThemeScaniaSub' }
+if ($lblThemeManSub)        { $lblThemeManSub.Text        = Get-Text 'RbThemeManSub' }
+if ($lblThemeVolvoSub)      { $lblThemeVolvoSub.Text      = Get-Text 'RbThemeVolvoSub' }
+    if ($lblThemeTorpedoSub)    { $lblThemeTorpedoSub.Text    = Get-Text 'RbThemeTorpedoSub' }
     $lblOptions.Text          = Get-Text 'GrpOptions'
     $chkShortcut.Content      = Get-Text 'ChkShortcut'
     $chkUpdateShortcut.Content= Get-Text 'ChkUpdateShortcut'
@@ -1848,7 +1991,7 @@ $btnToggleToken.Add_Click({
 
 # Поддержка и звезда
 $btnStar.Add_Click({
-    [System.Diagnostics.Process]::Start('https://github.com/FooZzee/stream-overlay-cockpit')
+    [System.Diagnostics.Process]::Start('https://github.com/FooZzee/ETS2-ATS-Cockpit-Stream-Overlay')
 })
 $btnSupport.Add_Click({
     [System.Diagnostics.Process]::Start('https://www.donationalerts.com/r/foozzee')
@@ -1856,8 +1999,8 @@ $btnSupport.Add_Click({
 $linkWeb.Add_Click({ [System.Diagnostics.Process]::Start('https://foozzee.ru') })
 $linkTwitch.Add_Click({ [System.Diagnostics.Process]::Start('https://twitch.tv/foozzee') })
 $linkYt.Add_Click({ [System.Diagnostics.Process]::Start('https://youtube.com/@foozzee') })
-$linkTg.Add_Click({ [System.Diagnostics.Process]::Start('https://t.me/foozzee_stream') })
-$linkVk.Add_Click({ [System.Diagnostics.Process]::Start('https://vk.com/foozzee') })
+$linkTg.Add_Click({ [System.Diagnostics.Process]::Start('https://t.me/foozzeestream') })
+$linkVk.Add_Click({ [System.Diagnostics.Process]::Start('https://vk.ru/gtfun') })
 
 # Вызов модальных окон документации (строго без Блокнота)
 $btnChangelog.Add_Click({
@@ -1899,11 +2042,13 @@ $btnInstall.Add_Click({
         # Генерация config.js (только если файла ещё нет в целевой папке, чтобы защитить пользовательские настройки)
         $cfgPath = Join-Path $instDir 'config.js'
         $selectedAspect = if ($rbCam16x9 -and $rbCam16x9.IsChecked) { '16:9' } else { '4:3' }
+        $selectedTheme  = if ($rbThemeVolvo -and $rbThemeVolvo.IsChecked) { 'volvo-9700-dd' } elseif ($rbThemeMan -and $rbThemeMan.IsChecked) { 'man-lions-coach' } elseif ($rbThemeScania -and $rbThemeScania.IsChecked) { 'scania-touring' } elseif ($rbThemeTorpedo -and $rbThemeTorpedo.IsChecked) { 'torpedo-pro' } else { 'classic' }
         if (-not (Test-Path -LiteralPath $cfgPath)) {
-            $cfgContent = Build-ConfigJsContent -SelectedLang $script:CurrentLang -DriverName $txtDriver.Text -TwitchName $txtTwitch.Text -DonationAlertsToken $daTokenValue -WebcamAspect $selectedAspect
+            $cfgContent = Build-ConfigJsContent -SelectedLang $script:CurrentLang -DriverName $txtDriver.Text -TwitchName $txtTwitch.Text -DonationAlertsToken $daTokenValue -WebcamAspect $selectedAspect -CockpitTheme $selectedTheme
             [System.IO.File]::WriteAllText($cfgPath, $cfgContent, [System.Text.Encoding]::UTF8)
         } else {
             Update-ExistingConfigJsWebcamAspect -ConfigPath $cfgPath -WebcamAspect $selectedAspect
+            Update-ExistingConfigJsCockpitTheme -ConfigPath $cfgPath -CockpitTheme $selectedTheme
         }
 
         $ets2StatusText = Get-Text 'StatusOk'
@@ -1965,6 +2110,18 @@ $btnInstall.Add_Click({
             $upSc.Save()
         }
 
+        # Ярлык графического конфигуратора
+        $cfgScPath = Join-Path $desktopDir "ETS2-ATS Overlay Configurator.lnk"
+        $cfgSc = $wsh.CreateShortcut($cfgScPath)
+        $cfgSc.TargetPath = Join-Path $instDir 'Configure-Overlay.bat'
+        $cfgSc.WorkingDirectory = $instDir
+        $cfgSc.Description = if ($script:CurrentLang -eq 'ru') { 'Настройка оверлея ETS2 / ATS' } else { 'ETS2 / ATS Overlay Configuration' }
+        $configuratorIconPath = Join-Path $instDir 'assets\icons\configurator.ico'
+        if (Test-Path -LiteralPath $configuratorIconPath) {
+            $cfgSc.IconLocation = "$configuratorIconPath,0"
+        }
+        $cfgSc.Save()
+
         # Мгновенное обновление кэша иконок на Рабочем столе Windows
         try {
             [ShellNotify]::SHChangeNotify(0x08000000, 0x0000, [IntPtr]::Zero, [IntPtr]::Zero)
@@ -1976,8 +2133,7 @@ $btnInstall.Add_Click({
         }
 
         # Отчёт об успешной установке
-        $obsRawTemplate = if ($selectedAspect -eq '16:9') { Get-Text 'DoneObsBody16x9' } else { Get-Text 'DoneObsBody4x3' }
-        $obsBodyText = [string]::Format([string]$obsRawTemplate, $instDir)
+        $obsBodyText = if ($selectedAspect -eq '16:9') { Get-Text 'DoneObsBody16x9' } else { Get-Text 'DoneObsBody4x3' }
         $resMsg = @"
 $([string](Get-Text 'DoneHeader'))
 $([string](Get-Text 'DoneSub'))
@@ -1987,11 +2143,16 @@ $([string](Get-Text 'DoneSub'))
 • $([string](Get-Text 'DoneAtsLine')) $atsStatusText
 • $([string](Get-Text 'DoneShortcutLine')) $(if ($chkShortcut.IsChecked) { '[OK]' } else { '-' })
 • $([string](Get-Text 'DoneUpdateScLine')) $(if ($chkUpdateShortcut.IsChecked) { '[OK]' } else { '-' })
+• $(if ($script:CurrentLang -eq 'ru') { 'Ярлык конфигуратора на Рабочем столе' } else { 'Configurator Desktop Shortcut' }) [OK]
 • $([string](Get-Text 'DoneDaLine')) $(if ([string]::IsNullOrWhiteSpace($daTokenValue)) { Get-Text 'StatusDaSkipped' } else { Get-Text 'StatusDaOk' })
 
 ----------------------------------------------------------------------
 $([string](Get-Text 'DoneObsHeader'))
 $([string]$obsBodyText)
+
+----------------------------------------------------------------------
+© 2026 FooZzee · Proprietary Freeware License (All Rights Reserved)
+https://github.com/FooZzee/ETS2-ATS-Cockpit-Stream-Overlay
 "@
         [System.Windows.MessageBox]::Show($resMsg, (Get-Text 'DoneHeader'), [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
         $win.Close()

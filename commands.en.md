@@ -59,3 +59,7 @@ When adding the overlay as a Browser Source in OBS Studio, you can pass runtime 
 > * **Canvas Dimensions:** Set width and height to exactly `1920` × `1080` (for Full HD) or `2560` × `1440` (for 2K QHD).
 > * **Frame Rate:** Set to `60 fps` for fluid speedometer needle movement and alert particle dispersion.
 > * **Memory Management:** Uncheck "Shutdown source when not visible" so trip statistics and mileage remain continuous across scene transitions.
+
+---
+
+Copyright (c) 2026 FooZzee. All Rights Reserved.

@@ -1,6 +1,7 @@
 ﻿<#
 .SYNOPSIS
   Local HTTP telemetry bridge for ETS2 / ATS (SCS Telemetry SDK 1.16 Shared Memory).
+  ETS2 / ATS Cockpit Stream Overlay — Copyright (c) 2026 FooZzee. All Rights Reserved.
   - Reads Shared Memory (Local\FooZzeeSCSTelemetry) from overlayobs_foozzee_telemetry.dll -> HTTP http://127.0.0.1:30002/telemetry
   - Pure native SCS SDK 1.16 bridge (no third-party proxy apps required)
 #>
@@ -719,6 +720,7 @@ try {
   $listener.Start(32)
 
   Write-Host '=================================================================' -ForegroundColor DarkGray
+  Write-Host 'ETS2 / ATS Cockpit Stream Overlay — Copyright (c) 2026 FooZzee. All Rights Reserved.' -ForegroundColor Yellow
   Write-Host $msg.Title -ForegroundColor Yellow
   Write-Host ($msg.SharedMem -f $effectiveStaleMs) -ForegroundColor Cyan
   Write-Host $msg.Telemetry -ForegroundColor Green

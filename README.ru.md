@@ -3,11 +3,11 @@
 > **ETS2 / ATS Stream Overlay Cockpit v0.0.2**  
 > Автономный оверлей приборной панели тягача и нативный плагин телеметрии SCS SDK 1.16 для OBS Studio.
 
-[![Версия](https://img.shields.io/badge/Версия-v0.0.2-brightgreen?style=flat)](https://github.com/FooZzee/ets2-ats-stream-overlay/releases)
+[![Версия](https://img.shields.io/badge/Версия-v0.0.2-brightgreen?style=flat)](https://github.com/FooZzee/ETS2-ATS-Cockpit-Stream-Overlay/releases)
 [![Платформа](https://img.shields.io/badge/Платформа-Windows_x64-blue?style=flat)](https://www.microsoft.com/windows)
 [![SCS SDK](https://img.shields.io/badge/SCS_SDK-v1.16-orange?style=flat)](https://modding.scssoft.com/wiki/Documentation/Engine/SDK/Telemetry)
 [![OBS Studio](https://img.shields.io/badge/OBS_Studio-28%2B-5c5cf0?style=flat)](https://obsproject.com/)
-[![Лицензия](https://img.shields.io/badge/Лицензия-MIT-green?style=flat)](./LICENSE)
+[![Лицензия](https://img.shields.io/badge/Лицензия-All_Rights_Reserved-red?style=flat)](./LICENSE)
 
 [![Поддержать проект](https://img.shields.io/badge/Поддержать_проект-FF5E5B?style=for-the-badge&logo=heart&logoColor=white)](https://www.donationalerts.com/r/foozzee)
 
@@ -116,6 +116,10 @@ Local\FooZzeeSCSTelemetry"| C["udp-bridge.ps1
 * **Сайт:** https://foozzee.ru
 * **Twitch:** https://twitch.tv/foozzee
 * **YouTube:** https://youtube.com/@foozzee
-* **Telegram:** https://t.me/foozzee_stream
-* **VK:** https://vk.com/foozzee
+* **Telegram:** https://t.me/foozzeestream
+* **VK:** https://vk.ru/gtfun
 * **Поддержать разработку:** [DonationAlerts (https://www.donationalerts.com/r/foozzee)](https://www.donationalerts.com/r/foozzee)
+
+---
+
+Copyright (c) 2026 FooZzee. All Rights Reserved.

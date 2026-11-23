@@ -62,4 +62,8 @@
 * **Автономный просмотрщик FlowDocument:** Встроенный просмотр документации и истории версий прямо в окне установщика без вызова Блокнота.
 
 > [!NOTE]
-> Проект **ETS2 / ATS Stream Overlay Cockpit** распространяется свободно по лицензии MIT. Поддержите проект звездой на GitHub или донатом автору FooZzee!
+> Проект **ETS2 / ATS Stream Overlay Cockpit** распространяется свободно по лицензии Proprietary Freeware (All Rights Reserved). Поддержите проект звездой на GitHub или донатом автору FooZzee!
+
+---
+
+Copyright (c) 2026 FooZzee. All Rights Reserved.
