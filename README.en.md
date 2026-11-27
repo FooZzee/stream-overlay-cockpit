@@ -1,118 +1,83 @@
-# 🚛 ETS2 / ATS Stream Overlay Cockpit v0.0.4
+<div align="center">
+  <img src="./assets/img/logo.png" alt="ETS2 / ATS Stream Overlay Cockpit Logo" width="112" />
+  <h1>ETS2 / ATS Stream Overlay Cockpit v0.0.4</h1>
+  <p><strong>Zero-blur 60 FPS telemetry HUD for Euro Truck Simulator 2 &amp; American Truck Simulator</strong></p>
 
-> **ETS2 / ATS Stream Overlay Cockpit v0.0.4**  
-> Standalone Truck Cockpit HUD Stream Overlay & Native SCS SDK 1.16 Telemetry Plugin for OBS Studio.
+  [![Release](https://img.shields.io/badge/Release-v0.0.4-00e5ff?style=flat)](https://github.com/FooZzee/stream-overlay-cockpit/releases/tag/v0.0.4)
+  [![Platform](https://img.shields.io/badge/Platform-Windows_x64-0078d4?style=flat)](https://www.microsoft.com/windows)
+  [![SCS SDK](https://img.shields.io/badge/SCS_SDK-1.16-f59e0b?style=flat)](https://modding.scssoft.com/wiki/Documentation/Engine/SDK/Telemetry)
+  [![OBS Studio](https://img.shields.io/badge/OBS_Studio-28%2B-5c5cf0?style=flat)](https://obsproject.com/)
+  [![License](https://img.shields.io/badge/License-All_Rights_Reserved-ef4444?style=flat)](./LICENSE)
 
-[![Release](https://img.shields.io/badge/Release-v0.0.4-brightgreen?style=flat)](https://github.com/FooZzee/stream-overlay-cockpit/releases)
-[![Platform](https://img.shields.io/badge/Platform-Windows_x64-blue?style=flat)](https://www.microsoft.com/windows)
-[![SCS SDK](https://img.shields.io/badge/SCS_SDK-v1.16-orange?style=flat)](https://modding.scssoft.com/wiki/Documentation/Engine/SDK/Telemetry)
-[![OBS Studio](https://img.shields.io/badge/OBS_Studio-28%2B-5c5cf0?style=flat)](https://obsproject.com/)
-[![License](https://img.shields.io/badge/License-All_Rights_Reserved-ef4444?style=flat)](./LICENSE)
+  <br />
 
-[![Support Project](https://img.shields.io/badge/Support_Project-FF5E5B?style=for-the-badge&logo=heart&logoColor=white)](https://www.donationalerts.com/r/foozzee)
+  [![Support Project](https://img.shields.io/badge/Support_Project-FF5E5B?style=for-the-badge&logo=heart&logoColor=white)](https://www.donationalerts.com/r/foozzee)
 
----
-
-## Interface Layouts & Shortcuts
-
-- **Standard 4:3 Webcam Frame (Default):** `325×244 px` (1080p) / `397×298 px` (1440p) aligned with the cockpit cluster height.
-- **Widescreen 16:9 Webcam Frame:** `384×216 px` (1080p) / `464×261 px` (1440p) aligned with the top cluster edge.
-- **Desktop App Shortcuts:** `Overlay Bridge` (telemetry), `Overlay Configurator` (HUD settings), and `Overlay Update` (auto-updater).
-
----
-
-## 📋 System Requirements
-
-| Component | Requirement | Notes |
-| :--- | :--- | :--- |
-| **Operating System** | Windows 10 / 11 (x64) | 64-bit architecture |
-| **Simulators** | Euro Truck Simulator 2 / American Truck Simulator | Version 1.40+ (Steam x64) |
-| **Telemetry Protocol** | SCS Telemetry SDK 1.16 | Native `overlayobs_foozzee_telemetry.dll` |
-| **Streaming Software** | OBS Studio 28.0+ | Browser Source |
-| **Network Stack** | Local port `30002` (HTTP) | Direct packet bridge without external servers |
+  <p>
+    <a href="./README.md">[Main README]</a> •
+    <a href="./README.ru.md">[RU] Русская версия</a> •
+    <a href="./CHANGELOG.en.md">Changelog</a> •
+    <a href="./commands.en.md">Chat Commands</a> •
+    <a href="./RELEASE_NOTES_v0.0.4.md">Release Notes v0.0.4</a>
+  </p>
+</div>
 
 ---
 
-## 🏛️ Architecture Overview
+## Engineering Overview
 
-```mermaid
-flowchart LR
-    A["Euro Truck Simulator 2 / ATS
-(64-bit Game Engine)"] -->|"SCS Telemetry SDK 1.16"| B["overlayobs_foozzee_telemetry.dll
-(Native C++ Release Plugin)"]
-    B -->|"Shared Memory
-Local\FooZzeeSCSTelemetry"| C["udp-bridge.ps1
-(Local HTTP/JSON Server :30002)"]
-    C -->|"JSON Polling (30-60 FPS)
-/telemetry"| D["OBS Studio Browser Source
-(ets2-desktop.html)"]
-    E["Twitch IRC & DonationAlerts"] -->|"WebSockets
-(Alerts & Live Chat)"| D
-```
+Most browser overlays drop frames in OBS Studio due to GPU-heavy `backdrop-filter: blur` passes, unthrottled DOM churn, and external server dependencies. **Stream Overlay Cockpit** is engineered for `1920×1080` and `2560×1440` broadcasts at a locked **60 FPS**:
+
+- **Native SCS SDK 1.16 Plugin (`overlayobs_foozzee_telemetry.dll`):** Captures speed, RPM, gear, air pressure, fuel, coolant/oil temperatures, pedal travel, steering angle, cargo telemetry, and real-time ETA directly from Shared Memory over a lightweight local HTTP bridge (`127.0.0.1:30002`).
+- **Matte 3D-Carousel Chat (`rgba(14, 16, 20, 0.70)`):** Borderless dark-matte message pills with zero `backdrop-filter`, height-aware dynamic DOM pruning, native Twitch IRC emotes (`Array.from` Unicode code points) + **7TV / BTTV / FFZ**, real **Twitch GQL** badges, and an infinite 3D flip cycle (**Chat 5m → `!0–!5` Game Poll 1m → Chat 5m → Socials Card 1m**).
+- **Game Rating Poll & 7 Chat Commands:** Captures `!0–!5` votes before `hideCommands`, computes the `1–5` rating average without `!0` distortion, prioritizes manual `chat.gameTitle` over `auto` detection, and exposes individual toggles/cooldowns for `!honk`, `!cb`, `!route`, `!stats`, `!truck`, `!driver`, and `!bet`.
+- **Bilingual Setup (`RU / EN`) & Focused WPF Configurator:** Standalone `.exe` installer with live **Русский / English** switching, automatic DLL deployment, `Overlay Bridge` / `Overlay Configurator` / `Overlay Update` shortcuts, and safe `Uninstall.exe` preserving `config.js`.
 
 ---
 
-## ⚡ Quick Start in 3 Steps
+## Visual Previews
 
-### Step 1. Automated Installation
-Launch **`Install-Overlay.bat`** (no administrative privileges required):
-1. The Setup Wizard will automatically resolve your Steam, ETS2, and ATS game paths.
-2. Select your webcam frame aspect ratio:
-   * **`4:3`** — standard square frame (`325×244 px` @ 1080p, matching dashboard height).
-   * **`16:9`** — widescreen frame (`384×216 px` @ 1080p, matching top cluster height).
-3. Optionally enter your streamer nickname and Twitch channel for chat command integration.
-4. Click **«INSTALL OVERLAY»**. Files will be installed to `C:\Stream_Overlay_Cockpit`, the plugin will be placed into the `bin\win_x64\plugins` folders, and Desktop shortcuts will be created.
+### Cockpit HUD — 4:3 Webcam Frame (Default)
+![ETS2 / ATS Stream Overlay Cockpit 4:3](./assets/previews/preview-cockpit-4x3.png)
 
-### Step 2. Launch Telemetry Bridge Before Streaming
-Before going live, start the **«ETS2-ATS Overlay Bridge»** shortcut on your Desktop (or run `Start-Overlay.bat`). This opens the high-speed local telemetry bridge streaming memory packets at up to 60 fps.
+### Cockpit HUD — 16:9 Widescreen Webcam Frame (`?cam=16x9`)
+![ETS2 / ATS Stream Overlay Cockpit 16:9](./assets/previews/preview-cockpit-16x9.png)
 
-### Step 3. Add Overlay to OBS Studio
-1. In OBS Studio, add a new **«Browser»** source to your scene.
-2. In the "Browser" source properties, **DO NOT** check "Local file" (otherwise webcam aspect ratio query parameters will not work). Paste the file path directly into the standard **URL** field:  
-   `C:\Stream_Overlay_Cockpit\ets2-desktop.html` (or with `?cam=4x3` / `?cam=16x9`).
-3. Set canvas dimensions:
-   * Width: **`1920`**
-   * Height: **`1080`**
-   * FPS: **`60`**
-4. Uncheck «Shutdown source when not visible» to preserve continuous session stats across scene transitions.
-5. Click **«OK»**.
-
-> [!TIP]
-> **Webcam Layer Placement in OBS:** Place your camera capture device source **below** the overlay layer in your OBS source list and position the video feed within the webcam frame area to the left of the dashboard.
+### Matte 3D-Flip Game Rating Poll (`!0–!5`)
+![Matte 3D Game Rating Poll](./assets/previews/preview-poll-3d.png)
 
 ---
 
-## 🎛️ Architecture & Feature Overview
+## Quick Start (3 Steps)
 
-* **Central Cockpit Dashboard:** 100% opaque dark backdrop `#0B0F17`, digital & dial speedometer (0–160 km/h / mph), tachometer, active gear, live throttle/brake/steering inputs, fuel volume, air pressure, temperatures, and trip odometer.
-* **Universal Webcam Frame:** `4:3` and `16:9` support with real-time trip duration clock and smooth `10px` corner radii.
-* **Gaming Chat Dock:** 85% opacity dark dock on the right side, optimized for OBS Browser Source without GPU-heavy `backdrop-filter: blur`.
-* **Animated Stream Alerts:** Slide-up reveal cards (+10 px above dashboard) with particle shatter explosion on dismissal.
-* **Native SCS Telemetry SDK 1.16 Plugin:** Direct C++ binary capture via `overlayobs_foozzee_telemetry.dll` with zero FPS penalty.
+1. **Install:** Run `Stream_Overlay_Cockpit_Setup_v0.0.4.exe`, select **English**, pick your installation folder (default `C:\Stream_Overlay_Cockpit`), and verify ETS2/ATS paths for automatic `overlayobs_foozzee_telemetry.dll` deployment.
+2. **Configure:** Open **`Overlay Configurator`** from your Desktop (or `Configure-Overlay.bat`) to set your Twitch channel, DonationAlerts socket token, poll `gameTitle` (`auto` or custom), social links, and chat command toggles.
+3. **Add to OBS Studio:** Add a **Browser Source**, **uncheck Local file**, set URL to `file:///C:/Stream_Overlay_Cockpit/ets2-desktop.html` (or append `?cam=16x9`), Width `1920`, Height `1080`, FPS `60`. Launch **`Overlay Bridge`** before starting ETS2/ATS.
 
 ---
 
-## 🔧 Troubleshooting Guide
+## URL Query Parameters
 
-| Issue | Cause | Solution |
-| :--- | :--- | :--- |
-| Gauges show `0` | Telemetry bridge not running | Launch the `ETS2-ATS Overlay Bridge` shortcut before launching the game. |
-| `DLL Missing` error | Game running in 32-bit mode | Launch the simulator strictly in `64-bit (DirectX 11)` mode. |
-| Webcam misaligned | Aspect ratio mismatch | Add `?cam=4x3` or `?cam=16x9` to the Browser Source URL in OBS. |
-| Chat commands inactive | Channel name not configured | Specify your channel name in `config.js` under `channels.twitch.channelName`. |
-
----
-
-## 👤 Author & Support
-
-* **Creator:** FooZzee
-* **Website:** https://foozzee.ru
-* **Twitch:** https://twitch.tv/foozzee
-* **YouTube:** https://youtube.com/@foozzee
-* **Telegram:** https://t.me/foozzeestream
-* **VK:** https://vk.ru/gtfun
-* **Support the Project:** [DonationAlerts (https://www.donationalerts.com/r/foozzee)](https://www.donationalerts.com/r/foozzee)
+| Parameter | Description |
+| :--- | :--- |
+| `?cam=16x9` / `?cam=4x3` | Force webcam frame aspect ratio |
+| `?theme=amber` / `?theme=ice` | Switch cockpit cluster backlight preset |
+| `?view=chat` / `?view=poll` / `?view=socials` | Pin a specific 3D-carousel face |
+| `?fast=1` | Accelerated 3D flip cycle (6s / 4s) for testing |
+| `?test=1` / `?demo=1` | Enable telemetry demo mode and sample `!0–!5` votes |
 
 ---
+
+## Author & Links — FooZzee
+
+- **GitHub:** https://github.com/FooZzee/stream-overlay-cockpit
+- **Website:** https://foozzee.ru
+- **Twitch:** https://twitch.tv/foozzee
+- **YouTube:** https://youtube.com/@foozzee
+- **Telegram:** https://t.me/foozzeestream
+- **VK:** https://vk.ru/gtfun
+- **DonationAlerts:** https://www.donationalerts.com/r/foozzee
+
+> Proprietary Freeware License (All Rights Reserved). Free personal use for live streams and video broadcasts; commercial resale, rebranding, or public redistribution of modified builds without written permission is prohibited. See [LICENSE](./LICENSE).
 
 Copyright (c) 2026 FooZzee. All Rights Reserved.
