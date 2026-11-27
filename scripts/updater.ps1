@@ -47,7 +47,7 @@ if (-not (Test-Path (Join-Path $ProjectRoot 'ets2-desktop.html'))) {
 }
 
 # 5. Константы проекта и репозитория
-$CurrentVersion = 'v0.0.3'
+$CurrentVersion = 'v0.0.4'
 $RepoOwner = 'FooZzee'
 $RepoName = 'stream-overlay-cockpit'
 $ApiUrl = "https://api.github.com/repos/$RepoOwner/$RepoName/releases/latest"
@@ -135,7 +135,7 @@ function Get-ReleaseInfo {
         $req = [System.Net.HttpWebRequest]::Create($ApiUrl)
         $req.Method = 'GET'
         $req.Timeout = $TimeoutSec * 1000
-        $req.UserAgent = 'FooZzee-Overlay-PipBoy-Updater/0.0.3'
+        $req.UserAgent = 'FooZzee-Overlay-PipBoy-Updater/1.2.2'
         $req.Accept = 'application/vnd.github.v3+json'
 
         $resp = $req.GetResponse()

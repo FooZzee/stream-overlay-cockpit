@@ -1,11 +1,11 @@
 /* Copyright (c) 2026 FooZzee. All Rights Reserved. Licensed under Proprietary Freeware License. */
 /**
- * Шаблон конфигурации ETS2 / ATS Stream Overlay Cockpit v0.0.3.0.2.
+ * Шаблон конфигурации ETS2 / ATS Stream Overlay Cockpit v0.0.4.
  * Скопируйте этот файл в config.js и заполните своими данными.
  */
 window.OVERLAY_CONFIG = {
   // Метка сборки оверлея
-  version: 'v0.0.3',
+  version: 'v0.0.4',
 
   // Язык интерфейса оверлея ('ru' | 'en')
   lang: 'ru',
@@ -60,8 +60,13 @@ window.OVERLAY_CONFIG = {
     }
   },
 
-  // Настройки чата
+  // Настройки чата и 3D-карусели
   chat: {
+    enabled: true,              // false — полностью скрывает окно чата
+    pollEnabled: true,          // Интерактивный опросник «ОЦЕНИТЕ ИГРУ» (!0–!5)
+    gameTitle: 'auto',          // Название игры в опроснике ('auto' — автоопределение по ETS2/ATS и Twitch)
+    carouselChatSec: 300,       // Длительность показа ленты чата (сек, по умолчанию 300 = 5 мин)
+    carouselCardSec: 60,        // Длительность показа карточки опросника/соцсетей (сек, по умолчанию 60 = 1 мин)
     maxMessages: 30,            // Максимум сообщений в DOM (защита от утечки памяти)
     messageLifetimeMs: 0,       // Автоудаление сообщения через N мс (0 — не удалять по таймеру)
     hideCommands: true,         // Скрывать сообщения, начинающиеся с '!'
@@ -71,6 +76,15 @@ window.OVERLAY_CONFIG = {
   // Интерактивные команды Twitch-чата в оверлее (!гудок, !рация, !рейс, !стата, !тягач, !водитель, !ставка)
   chatCommands: {
     enabled: true,              // Включить интерактивные команды чата
+    commands: {
+      honk: true,               // !гудок
+      cb: true,                 // !рация
+      route: true,              // !рейс
+      stats: true,              // !стата
+      truck: true,              // !тягач
+      driver: true,             // !водитель
+      bet: true                 // !ставка
+    },
     cbRadioMinRole: 'follower', // Минимальная роль для !рация ('all' | 'follower' | 'subscriber' | 'vip' | 'mod')
     honkMinRole: 'vip',         // Минимальная роль для !гудок ('subscriber' | 'vip' | 'mod' | 'broadcaster')
     infoCooldownSec: 30,        // Глобальный кулдаун инфо-команд (!рейс, !стата, !тягач, !водитель)
@@ -134,9 +148,12 @@ window.OVERLAY_CONFIG = {
     pollIntervalMs: 3000
   },
 
-  // Ротатор соцсетей в нижней панели телеметрии (оставьте пустым, чтобы скрыть полосу)
+  // Ротатор соцсетей в нижней панели телеметрии и карточка «Не забудь подписаться:»
   socials: {
     switchIntervalMs: 9000,
+    telegram: '',               // Например 't.me/foozzeestream'
+    vk: '',                     // Например 'vk.ru/gtfun'
+    youtube: '',                // Например 'youtube.com/@foozzee'
     items: [
       // { label: 'TG', value: 't.me/YOUR_CHANNEL' },
       // { label: 'TWITCH', value: 'twitch.tv/YOUR_CHANNEL' }

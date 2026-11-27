@@ -1,24 +1,11 @@
 # 📜 Version History (Changelog) — ETS2 / ATS Stream Overlay Cockpit
 
-> **ETS2 / ATS Stream Overlay Cockpit v0.0.3**  
+> **ETS2 / ATS Stream Overlay Cockpit v0.0.2**  
 > Dual-language release documentation (English / Русский).
 
 ---
 
 ## 🇬🇧 English Release Notes
-
-### [0.0.3] - 2026-11-23
-
-#### 🛡️ Licensing & Security
-* **Proprietary Freeware License (All Rights Reserved):** Full transition to a proprietary freeware license for personal streaming broadcasts, strictly prohibiting commercial resale, misattribution, and unauthorized public redistribution of modified builds.
-* **Legal Attribution Headers:** Standardized copyright notices `Copyright (c) 2026 FooZzee. All Rights Reserved.` across all source files, manifests, and config templates.
-* **Credential Security Audit (`assets/js/ets2-config.js`):** Sanitized default DonationAlerts socket token (`donationAlerts.socketToken = ''`).
-
-#### 🔧 Scripts & Repository Automation
-* **Repository Endpoint Synchronization:** Synchronized updater and setup scripts to target `FooZzee/stream-overlay-cockpit`.
-* **PowerShell Script Quality Standard (`UTF-8 with BOM`):** All automation scripts validated with `AST_ERRORS = 0` and UTF-8 with BOM.
-* **Official Author Links:** Synchronized author links (Website, Twitch, YouTube, Telegram, VK, DonationAlerts).
-* **Version Alignment:** Comprehensive version bump to `v0.0.3`.
 
 ### [0.0.2] - 2026-11-19
 

@@ -9,7 +9,7 @@
   const DEFAULT_CONFIG = {
     lang: 'ru',
     debug: false,
-    version: 'v0.0.2',
+    version: 'v0.0.4',
     checkUpdates: true,
     githubRepo: 'FooZzee/stream-overlay-cockpit',
     githubUrl: 'https://github.com/FooZzee/stream-overlay-cockpit',
@@ -36,10 +36,33 @@
       }
     },
     chat: {
+      enabled: true,
+      pollEnabled: true,
+      gameTitle: 'auto',
+      carouselChatSec: 300,
+      carouselCardSec: 60,
       maxMessages: 30,
       messageLifetimeMs: 0,
       hideCommands: true,
       ignoredUsers: ['Nightbot', 'StreamElements', 'Moobot', 'FooZzee_Bot']
+    },
+    chatCommands: {
+      enabled: true,
+      commands: {
+        honk: true,
+        cb: true,
+        route: true,
+        stats: true,
+        truck: true,
+        driver: true,
+        bet: true
+      },
+      cbRadioMinRole: 'follower',
+      honkMinRole: 'vip',
+      infoCooldownSec: 30,
+      cbCooldownSec: 45,
+      honkCooldownSec: 60,
+      perUserCooldownSec: 120
     },
     theme: {
       cockpitPreset: 'amber', // 'amber' | 'ice'
@@ -86,6 +109,9 @@
     },
     socials: {
       switchIntervalMs: 9000,
+      telegram: '',
+      vk: '',
+      youtube: '',
       items: []
     }
   };

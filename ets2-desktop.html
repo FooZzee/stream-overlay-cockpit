@@ -5,15 +5,16 @@
   <!-- Copyright (c) 2026 FooZzee. All Rights Reserved. Licensed under Proprietary Freeware License. -->
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ETS2 / ATS Stream Overlay Cockpit — v0.0.3</title>
+  <title>ETS2 / ATS Stream Overlay Cockpit — v0.0.4</title>
 
   <link rel="stylesheet" href="./assets/css/fonts.css">
   <link rel="stylesheet" href="./assets/css/ets2-base.css">
   <link rel="stylesheet" href="./assets/css/ets2-desktop.css">
   <link rel="stylesheet" href="./assets/css/ets2-pipboy.css">
+  <link rel="stylesheet" href="./assets/css/ets2-chat-3d.css">
 </head>
 <body>
-  <main class="scene-desktop" aria-label="ETS2 / ATS Stream Overlay Cockpit v0.0.3">
+  <main class="scene-desktop" aria-label="ETS2 / ATS Stream Overlay Cockpit v0.0.4">
 
     <!-- 1. НИЖНЯЯ БЕГУЩАЯ СТРОКА (TELEMETRY NEWS TICKER — bottom: 0; left: 0; width: 100%) -->
     <footer class="top-news-ticker is-offline" id="top-news-ticker" aria-label="Бортовой информационный тикер телеметрии">
@@ -156,7 +157,7 @@
       </div>
 
       <div class="top-ticker-anchor-right">
-        <span class="top-version-pill">v0.0.2</span>
+        <span class="top-version-pill">v0.0.4</span>
       </div>
     </footer>
 
@@ -638,6 +639,8 @@
   <script src="./config.js" onerror="window.OVERLAY_CONFIG=window.OVERLAY_CONFIG||{}"></script>
   <script src="./assets/js/ets2-config.js"></script>
   <script src="./assets/js/ets2-alerts.js"></script>
+  <script src="./assets/js/ets2-emotes.js"></script>
+  <script src="./assets/js/ets2-chat-carousel.js"></script>
   <script src="./assets/js/ets2-chat.js"></script>
   <script src="./assets/js/ets2-telemetry.js"></script>
   <script src="./assets/js/ets2-updater.js"></script>

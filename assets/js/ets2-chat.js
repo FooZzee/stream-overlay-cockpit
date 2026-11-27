@@ -43,131 +43,66 @@
     }, 300);
   }
 
+  function removeOldestMessage(viewport) {
+    const oldest = viewport.firstElementChild;
+    if (!oldest) return false;
+    const msgId = oldest.dataset.msgId;
+    if (msgId && activeMessageTimers.has(msgId)) {
+      clearTimeout(activeMessageTimers.get(msgId));
+      activeMessageTimers.delete(msgId);
+    }
+    viewport.removeChild(oldest);
+    return true;
+  }
+
   function pruneMessages(viewport) {
     const maxMessages = Math.max(5, Number(config.chat.maxMessages) || 30);
     while (viewport.children.length > maxMessages) {
-      const oldest = viewport.firstElementChild;
-      if (!oldest) break;
-      const msgId = oldest.dataset.msgId;
-      if (msgId && activeMessageTimers.has(msgId)) {
-        clearTimeout(activeMessageTimers.get(msgId));
-        activeMessageTimers.delete(msgId);
-      }
-      viewport.removeChild(oldest);
+      if (!removeOldestMessage(viewport)) break;
     }
-  }
-
-  function createEmoteImage(src, altText, fallbackText) {
-    const doc = global.document;
-    const img = doc.createElement('img');
-    img.className = 'cockpit-msg-emote chat-emote';
-    img.src = src;
-    img.alt = altText;
-    img.decoding = 'async';
-    img.addEventListener('error', () => {
-      if (img.parentNode) {
-        img.parentNode.replaceChild(doc.createTextNode(fallbackText), img);
-      }
-    }, { once: true });
-    return img;
-  }
-
-  function parseTwitchEmotesTag(emotesTag, codePointLength) {
-    if (!emotesTag || typeof emotesTag !== 'string') return [];
-    const occurrences = [];
-
-    emotesTag.split('/').forEach((entry) => {
-      if (!entry) return;
-      const colonIdx = entry.indexOf(':');
-      if (colonIdx <= 0) return;
-
-      const emoteId = entry.slice(0, colonIdx).trim();
-      if (!emoteId) return;
-
-      const rangesStr = entry.slice(colonIdx + 1);
-      rangesStr.split(',').forEach((rangeStr) => {
-        const dashIdx = rangeStr.indexOf('-');
-        if (dashIdx <= 0) return;
-
-        const start = Number(rangeStr.slice(0, dashIdx));
-        const end = Number(rangeStr.slice(dashIdx + 1));
-        if (!Number.isInteger(start) || !Number.isInteger(end)) return;
-        if (start < 0 || end < start || end >= codePointLength) return;
-
-        occurrences.push({ start, end, emoteId });
-      });
-    });
-
-    occurrences.sort((a, b) => a.start - b.start || a.end - b.end);
-
-    const nonOverlapping = [];
-    let cursor = 0;
-    occurrences.forEach((item) => {
-      if (item.start >= cursor) {
-        nonOverlapping.push(item);
-        cursor = item.end + 1;
-      }
-    });
-
-    return nonOverlapping;
-  }
-
-  function appendTwitchEmoteNodes(parentEl, rawText, emotesTag) {
-    const doc = global.document;
-    const chars = Array.from(rawText);
-    const occurrences = parseTwitchEmotesTag(emotesTag, chars.length);
-
-    if (occurrences.length === 0) {
-      parentEl.appendChild(doc.createTextNode(rawText.trim()));
-      return;
-    }
-
-    let cursor = 0;
-    occurrences.forEach((occ) => {
-      if (occ.start > cursor) {
-        parentEl.appendChild(doc.createTextNode(chars.slice(cursor, occ.start).join('')));
-      }
-      const emoteName = chars.slice(occ.start, occ.end + 1).join('');
-      const src = `https://static-cdn.jtvnw.net/emoticons/v2/${encodeURIComponent(occ.emoteId)}/default/dark/1.0`;
-      parentEl.appendChild(createEmoteImage(src, '', emoteName));
-      cursor = occ.end + 1;
-    });
-
-    if (cursor < chars.length) {
-      parentEl.appendChild(doc.createTextNode(chars.slice(cursor).join('')));
+    while (viewport.children.length > 1 && viewport.clientHeight > 0 && viewport.scrollHeight > viewport.clientHeight) {
+      if (!removeOldestMessage(viewport)) break;
     }
   }
 
   function appendChatMessageText(parentEl, platform, rawText, emotesTag) {
-    if (platform === 'twitch' && emotesTag) {
-      appendTwitchEmoteNodes(parentEl, rawText, emotesTag);
+    if (app.emotes && typeof app.emotes.appendMessageContent === 'function') {
+      app.emotes.appendMessageContent(parentEl, platform, rawText, emotesTag);
       return;
     }
-    const cleanText = rawText.trim();
-    parentEl.appendChild(global.document.createTextNode(cleanText));
+    parentEl.appendChild(global.document.createTextNode(String(rawText || '').trim()));
   }
 
   function pushMessage(payload) {
-    const viewport = getViewport();
-    if (!viewport || !payload) return false;
+    if (!payload) return false;
 
     const rawText = String(payload.text || '');
     const trimmedText = rawText.trim();
     if (!trimmedText) return false;
+
+    const username = String(payload.username || 'Зритель').trim();
+    if (isIgnoredUser(username)) {
+      return false;
+    }
+
+    const platform = String(payload.platform || 'twitch').toLowerCase();
+    if (typeof global.CustomEvent === 'function' && global.dispatchEvent) {
+      global.dispatchEvent(new global.CustomEvent('cockpit:chat-raw-message', {
+        detail: { user: username, text: rawText, platform }
+      }));
+    }
+
+    const viewport = getViewport();
+    if (!viewport) return false;
 
     if (config.chat.hideCommands && trimmedText.startsWith('!')) {
       return false;
     }
 
     const doc = global.document;
-    const username = String(payload.username || 'Зритель').trim();
-    if (isIgnoredUser(username)) {
-      return false;
-    }
 
     msgSeq += 1;
     const msgId = `msg-${msgSeq}`;
-    const platform = String(payload.platform || 'twitch').toLowerCase();
     const safePlatformClass = /^[a-z0-9-]+$/.test(platform) ? platform : 'twitch';
     const role = payload.role ? String(payload.role).toUpperCase() : '';
     const userColor = payload.color || '';
@@ -186,26 +121,26 @@
     }
 
     const platformLabel = platform === 'vk' ? 'VK' : 'TW';
-    const platformIconSvg = platform === 'vk'
-      ? '<svg class="cockpit-msg-platform-svg" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M1.8 3.1h1.7l1.8 4.1 1.6-4.1h1.6L6.6 8.9H5.1L1.8 3.1Z" fill="currentColor"/><circle cx="9.6" cy="8.1" r="1.1" fill="currentColor"/></svg>'
-      : '<svg class="cockpit-msg-platform-svg" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2.2 1.2L1.2 3v6.5h2.3V11l1.6-1.5h1.9l3.8-3.5V1.2H2.2Zm7.5 4.2L8.1 7H5.7L4.4 8.2V7H2.6V2.3h7.1v3.1Z" fill="currentColor"/><rect x="7.1" y="3.5" width="1.1" height="2.2" fill="currentColor"/><rect x="4.9" y="3.5" width="1.1" height="2.2" fill="currentColor"/></svg>';
-
     const badgesEl = doc.createElement('span');
     badgesEl.className = 'cockpit-msg-badges';
 
-    const platformTagEl = doc.createElement('span');
-    platformTagEl.className = `cockpit-msg-platform cockpit-msg-platform--${safePlatformClass}`;
-    platformTagEl.innerHTML = `${platformIconSvg}<span>${platformLabel}</span>`;
-    badgesEl.appendChild(platformTagEl);
+    if (platform === 'twitch' && app.emotes && typeof app.emotes.appendTwitchBadges === 'function' && (payload.badges || role)) {
+      app.emotes.appendTwitchBadges(badgesEl, payload.badges || '', role);
+    } else {
+      const platformTagEl = doc.createElement('span');
+      platformTagEl.className = `cockpit-msg-platform cockpit-msg-platform--${safePlatformClass}`;
+      platformTagEl.textContent = platformLabel;
+      badgesEl.appendChild(platformTagEl);
 
-    if (role) {
-      const safeRoleClass = role.toLowerCase().replace(/[^a-z0-9-]/g, '');
-      const roleEl = doc.createElement('span');
-      roleEl.className = safeRoleClass
-        ? `cockpit-msg-role cockpit-msg-role--${safeRoleClass}`
-        : 'cockpit-msg-role';
-      roleEl.textContent = role;
-      badgesEl.appendChild(roleEl);
+      if (role) {
+        const safeRoleClass = role.toLowerCase().replace(/[^a-z0-9-]/g, '');
+        const roleEl = doc.createElement('span');
+        roleEl.className = safeRoleClass
+          ? `cockpit-msg-role cockpit-msg-role--${safeRoleClass}`
+          : 'cockpit-msg-role';
+        roleEl.textContent = role;
+        badgesEl.appendChild(roleEl);
+      }
     }
 
     const authorEl = doc.createElement('span');
@@ -287,6 +222,7 @@
     if (!text || !text.startsWith('!')) return false;
     const cmdCfg = config.chatCommands || {};
     if (cmdCfg.enabled === false) return false;
+    const cmdFlags = cmdCfg.commands || {};
 
     const parts = text.trim().split(/\s+/);
     const cmd = parts[0].toLowerCase();
@@ -305,6 +241,7 @@
     const perUserCd = (Number(cmdCfg.perUserCooldownSec) || 120) * 1000;
 
     if (['!гудок', '!фафа', '!honk', '!клаксон'].includes(cmd)) {
+      if (cmdFlags.honk === false) return false;
       if (!isVip && !isSub && !isMod) return true;
       const globalCd = (Number(cmdCfg.honkCooldownSec) || 60) * 1000;
       if (!isMod) {
@@ -320,6 +257,7 @@
     }
 
     if (['!рация', '!сиби', '!cb'].includes(cmd)) {
+      if (cmdFlags.cb === false) return false;
       if (isFirstMsg && !isSub && !isVip && !isMod) return true;
       if (!args) return true;
 
@@ -345,6 +283,7 @@
     }
 
     if (['!рейс', '!маршрут', '!груз', '!job', '!route'].includes(cmd)) {
+      if (cmdFlags.route === false) return false;
       const globalCd = (Number(cmdCfg.infoCooldownSec) || 30) * 1000;
       if (!isMod && (now - lastInfoAt < globalCd)) return true;
       lastInfoAt = now;
@@ -355,6 +294,7 @@
     }
 
     if (['!стата', '!статистика', '!стрим', '!stats'].includes(cmd)) {
+      if (cmdFlags.stats === false) return false;
       const globalCd = (Number(cmdCfg.infoCooldownSec) || 30) * 1000;
       if (!isMod && (now - lastInfoAt < globalCd)) return true;
       lastInfoAt = now;
@@ -365,6 +305,7 @@
     }
 
     if (['!тягач', '!автобус', '!машина', '!truck'].includes(cmd)) {
+      if (cmdFlags.truck === false) return false;
       const globalCd = (Number(cmdCfg.infoCooldownSec) || 30) * 1000;
       if (!isMod && (now - lastInfoAt < globalCd)) return true;
       lastInfoAt = now;
@@ -375,6 +316,7 @@
     }
 
     if (['!водитель', '!права', '!рейтинг', '!driver'].includes(cmd)) {
+      if (cmdFlags.driver === false) return false;
       const globalCd = (Number(cmdCfg.infoCooldownSec) || 30) * 1000;
       if (!isMod && (now - lastInfoAt < globalCd)) return true;
       lastInfoAt = now;
@@ -385,6 +327,7 @@
     }
 
     if (['!ставка', '!bet'].includes(cmd)) {
+      if (cmdFlags.bet === false) return false;
       const choice = (args.split(/\s+/)[0] || '').toLowerCase();
       if (app.recordTripBet) {
         app.recordTripBet(username, choice);
@@ -466,6 +409,12 @@
               text = text.slice(8, -1);
             }
 
+            if (!isIgnoredUser(username) && typeof global.CustomEvent === 'function' && global.dispatchEvent) {
+              global.dispatchEvent(new global.CustomEvent('cockpit:chat-raw-message', {
+                detail: { user: username, text, platform: 'twitch' }
+              }));
+            }
+
             const isCmdHandled = handleChatCommand(username, text, tags, channel);
 
             if (!isCmdHandled || !config.chat.hideCommands) {
@@ -475,6 +424,7 @@
                 text,
                 color: tags.color || '',
                 role: resolveTwitchRole(tags),
+                badges: tags.badges || '',
                 emotes: tags.emotes || ''
               });
             }
@@ -543,6 +493,10 @@
   }
 
   function initConnections() {
+    const tw = config.channels && config.channels.twitch;
+    if (tw && tw.enabled && !isPlaceholder(tw.channelName) && app.emotes && typeof app.emotes.initForChannel === 'function') {
+      app.emotes.initForChannel(tw.channelName);
+    }
     const twitchActive = connectTwitchIRC();
     if (app.isTestMode) {
       updateChannelsStatus('test');

@@ -1,20 +1,7 @@
 # 📜 Version History — ETS2 / ATS Stream Overlay Cockpit
 
-> **ETS2 / ATS Stream Overlay Cockpit v0.0.3**  
+> **ETS2 / ATS Stream Overlay Cockpit v0.0.2**  
 > Official release log and development history for the standalone truck cockpit HUD stream overlay designed for Euro Truck Simulator 2 and American Truck Simulator.
-
-## [0.0.3] - 2026-11-23
-
-### 🛡️ Licensing & Security
-* **Proprietary Freeware License (All Rights Reserved):** Full transition to a proprietary freeware license for personal streaming broadcasts, strictly prohibiting commercial resale, misattribution, and unauthorized public redistribution of modified builds without prior written consent from the author. Removed references to open-source licenses.
-* **Legal Attribution Headers:** Standardized mandatory copyright notices `Copyright (c) 2026 FooZzee. All Rights Reserved.` across all source files (`.html`, `.js`, `.css`, `.ps1`), manifests, and configuration templates.
-* **Credential Security Audit (`assets/js/ets2-config.js`):** Sanitized default DonationAlerts socket token (`donationAlerts.socketToken = ''`), preventing accidental exposure of private streaming keys.
-
-### 🔧 Scripts & Repository Automation
-* **Repository Endpoint Synchronization:** Synchronized updater and setup scripts (`scripts/updater.ps1`, `scripts/installer.ps1`, `assets/js/ets2-updater.js`, `config.example.js`) to target `FooZzee/stream-overlay-cockpit`.
-* **PowerShell Script Quality Standard (`UTF-8 with BOM`):** Standardized all automation scripts (`installer.ps1`, `updater.ps1`, `configurator.ps1`, `udp-bridge.ps1`, `build-plugin.ps1`) to UTF-8 with BOM, validated with `AST_ERRORS = 0`.
-* **Official Author Links:** Updated all documentation files and GUI interfaces with official author links (Website, Twitch, YouTube, Telegram, VK, DonationAlerts).
-* **Version Alignment:** Comprehensive version alignment to `v0.0.3` across HTML tags, telemetry scripts, setup wizard, and updater UI.
 
 ## [0.0.2] - 2026-11-19
 

@@ -1,10 +1,10 @@
-# 🚛 ETS2 / ATS Stream Overlay Cockpit v0.0.3
+# 🚛 ETS2 / ATS Stream Overlay Cockpit v0.0.4
 
-> **ETS2 / ATS Stream Overlay Cockpit v0.0.3**  
+> **ETS2 / ATS Stream Overlay Cockpit v0.0.4**  
 > Standalone Truck Cockpit HUD Stream Overlay & Native SCS SDK 1.16 Telemetry Plugin for OBS Studio.  
 > Автономный оверлей приборной панели тягача и нативный плагин телеметрии SCS SDK 1.16 для OBS Studio.
 
-[![Release](https://img.shields.io/badge/Release-v0.0.3-brightgreen?style=flat)](https://github.com/FooZzee/stream-overlay-cockpit/releases)
+[![Release](https://img.shields.io/badge/Release-v0.0.4-brightgreen?style=flat)](https://github.com/FooZzee/stream-overlay-cockpit/releases)
 [![Platform](https://img.shields.io/badge/Platform-Windows_x64-blue?style=flat)](https://www.microsoft.com/windows)
 [![SCS SDK](https://img.shields.io/badge/SCS_SDK-v1.16-orange?style=flat)](https://modding.scssoft.com/wiki/Documentation/Engine/SDK/Telemetry)
 [![OBS Studio](https://img.shields.io/badge/OBS_Studio-28%2B-5c5cf0?style=flat)](https://obsproject.com/)
