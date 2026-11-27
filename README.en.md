@@ -25,6 +25,10 @@
 
 ---
 
+## Engineering Overview
+
+**ETS2 / ATS Stream Overlay Cockpit** is a standalone broadcast HUD locked at **60 FPS** with zero `backdrop-filter: blur`. Inspired by [rTruckSim](https://rtrucksim.fr/), this project was built as the author's own zero-blur 60 FPS telemetry overlay, matte 3D chat carousel, and desktop toolkit for ETS2 / ATS live streams.
+
 ## Live Interface Showcase
 
 <div align="center">
@@ -107,6 +111,14 @@ ETS2 / ATS Shared Memory ─▶ overlayobs_foozzee_telemetry.dll ─▶ Local HT
 | `?view=chat` / `?view=poll` / `?view=socials` | Pin a specific 3D-carousel face |
 | `?fast=1` | Accelerated 3D flip cycle (6s / 4s) for testing |
 | `?test=1` / `?demo=1` | Enable telemetry demo mode and sample `!0–!5` votes |
+
+---
+
+## Credits & Telemetry Compatibility
+
+- **Inspiration:** [rTruckSim](https://rtrucksim.fr/) (`https://rtrucksim.fr/`).
+- **Telemetry Specification:** Telemetry data format based on rTruckSim (https://rtrucksim.fr/).
+- **Plugin Isolation:** `overlayobs_foozzee_telemetry.dll` operates in an isolated Shared Memory segment and stays fully compatible without conflicting with `rtrucksim_telemetry.dll`.
 
 ---
 

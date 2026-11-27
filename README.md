@@ -84,7 +84,7 @@ ETS2 / ATS Shared Memory ─▶ overlayobs_foozzee_telemetry.dll ─▶ Local HT
 
 ## Русский · [Полная документация (README.ru.md)](./README.ru.md)
 
-**Stream Overlay Cockpit** — лёгкий HUD для прямых трансляций ETS2 и ATS в OBS Studio (`1920×1080` и `2560×1440`) без просадок кадров: в вёрстке полностью исключён GPU-тяжёлый `backdrop-filter: blur`, а телеметрия поступает напрямую из памяти игры.
+**Stream Overlay Cockpit** — автономный HUD для прямых трансляций ETS2 и ATS в OBS Studio (`1920×1080` и `2560×1440`) без просадок кадров: в вёрстке полностью исключён GPU-тяжёлый `backdrop-filter: blur`, а телеметрия поступает напрямую из памяти игры. Автор вдохновился проектом [rTruckSim](https://rtrucksim.fr/) и создал собственный независимый оверлей для стримов.
 
 | Модуль | Инженерная реализация |
 | :--- | :--- |
@@ -92,6 +92,8 @@ ETS2 / ATS Shared Memory ─▶ overlayobs_foozzee_telemetry.dll ─▶ Local HT
 | **Матовый 3D-чат и карусель** | Плашки `rgba(14, 16, 20, 0.70)` без обводок, очистка по высоте слота, нативные смайлы Twitch + **7TV/BTTV/FFZ**, бейджи **Twitch GQL**, цикл `5m Chat -> 1m Poll -> 5m Chat -> 1m Socials` |
 | **7 команд чата** | `!гудок` (пневмосигнал), `!рация` (CB-сообщение), `!рейс` (маршрут), `!стата` (статистика стрима), `!тягач` (грузовик), `!водитель` (карточка пилота), `!ставка` (ставка на рейс) |
 | **Установщик `RU / EN`** | Автовысота окна (`SizeToContent.Height`), переключение языка с записью в `config.js` и реестр, автоустановка DLL, 3 ярлыка и безопасный `Uninstall.exe` без `/s /q` |
+
+> Формат данных телеметрии основан на rTruckSim (https://rtrucksim.fr/). Плагин `overlayobs_foozzee_telemetry.dll` работает изолированно без конфликта с `rtrucksim_telemetry.dll`.
 
 ### Быстрый старт (3 шага)
 1. Запустите `Stream_Overlay_Cockpit_Setup_v0.0.4.exe`, выберите **Русский** и подтвердите пути к ETS2/ATS.
@@ -102,7 +104,7 @@ ETS2 / ATS Shared Memory ─▶ overlayobs_foozzee_telemetry.dll ─▶ Local HT
 
 ## English · [Full Documentation (README.en.md)](./README.en.md)
 
-**Stream Overlay Cockpit** is a broadcast-grade HUD for ETS2 and ATS engineered to stay locked at **60 FPS** in OBS Studio (`1920×1080` and `2560×1440`): zero `backdrop-filter: blur` passes, direct Shared Memory telemetry, and height-bounded DOM rendering.
+**Stream Overlay Cockpit** is a standalone broadcast-grade HUD for ETS2 and ATS engineered to stay locked at **60 FPS** in OBS Studio (`1920×1080` and `2560×1440`): zero `backdrop-filter: blur` passes, direct Shared Memory telemetry, and height-bounded DOM rendering. Inspired by [rTruckSim](https://rtrucksim.fr/), this project was built as a custom zero-blur 60 FPS overlay for ETS2 / ATS live streams.
 
 | Subsystem | Implementation Details |
 | :--- | :--- |
@@ -110,6 +112,8 @@ ETS2 / ATS Shared Memory ─▶ overlayobs_foozzee_telemetry.dll ─▶ Local HT
 | **Matte 3D Chat & Carousel** | Borderless `rgba(14, 16, 20, 0.70)` pills, height-aware pruning, native Twitch emotes (`Array.from`) + **7TV/BTTV/FFZ**, real **Twitch GQL** badges, `5m Chat -> 1m Poll -> 5m Chat -> 1m Socials` cycle |
 | **7 Chat Commands** | `!honk` (air horn), `!cb` (CB radio message), `!route` (current job), `!stats` (session stats), `!truck` (vehicle spec), `!driver` (driver card), `!bet` (trip prediction) |
 | **Bilingual Setup (`RU / EN`)** | Auto-sized WPF wizard (`SizeToContent.Height`), live language switch persisted to `config.js` & registry, auto DLL deployment, 3 desktop shortcuts, and safe `Uninstall.exe` |
+
+> Telemetry data format based on rTruckSim (https://rtrucksim.fr/). `overlayobs_foozzee_telemetry.dll` runs in isolation without conflicting with `rtrucksim_telemetry.dll`.
 
 ### Quick Start (3 Steps)
 1. Run `Stream_Overlay_Cockpit_Setup_v0.0.4.exe`, select **English**, and verify ETS2/ATS installation paths.

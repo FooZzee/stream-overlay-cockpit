@@ -25,6 +25,8 @@
 
 ---
 
+**ETS2 / ATS Stream Overlay Cockpit** — автономный HUD-оверлей для прямых трансляций на стабильных **60 FPS** без GPU-тяжёлого `backdrop-filter: blur`. Автор вдохновился проектом [rTruckSim](https://rtrucksim.fr/) и создал собственный независимый телеметрический кокпит, матовый 3D-чат и десктопный пакет утилит для стримов ETS2 / ATS.
+
 ## Посмотрите в деле
 
 <div align="center">
@@ -107,6 +109,14 @@ ETS2 / ATS Shared Memory ─▶ overlayobs_foozzee_telemetry.dll ─▶ Local HT
 | `?view=chat` / `?view=poll` / `?view=socials` | Закрепить конкретную грань 3D-карусели |
 | `?fast=1` | Ускоренный цикл переворотов (6с / 4с) для проверки |
 | `?test=1` / `?demo=1` | Тестовый режим телеметрии и демонстрационные голоса `!0–!5` |
+
+---
+
+## Благодарности и совместимость телеметрии
+
+- **Источник вдохновения:** [rTruckSim](https://rtrucksim.fr/) (`https://rtrucksim.fr/`).
+- **Спецификация телеметрии:** Формат данных телеметрии основан на rTruckSim (https://rtrucksim.fr/) / Telemetry data format based on rTruckSim (https://rtrucksim.fr/).
+- **Совместимость плагина:** `overlayobs_foozzee_telemetry.dll` работает изолированно и полностью совместим со сторонними плагинами без конфликта с `rtrucksim_telemetry.dll`.
 
 ---
 
