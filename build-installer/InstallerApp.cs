@@ -11,6 +11,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Markup;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using Microsoft.Win32;
 
 [assembly: AssemblyTitle("ETS2 / ATS Stream Overlay Cockpit Setup")]
@@ -77,6 +78,20 @@ namespace StreamOverlayCockpit.Setup
                 controller.Initialize(isSelfTest: true, targetDir: fullDir, isUninstallMode: false);
                 controller.Window.Show();
                 controller.Window.UpdateLayout();
+
+                BitmapImage logoBmp = controller.LoadedLogo;
+                if (logoBmp == null || logoBmp.PixelWidth <= 0 || logoBmp.PixelHeight <= 0)
+                {
+                    throw new InvalidOperationException("Embedded resource 'InstallerLogo.png' failed to decode.");
+                }
+                log("Embedded logo verified: " + logoBmp.PixelWidth + "x" + logoBmp.PixelHeight);
+
+                int clipped = controller.CountClippedControls();
+                log("CLIPPED_CONTROLS=" + clipped);
+                if (clipped > 0)
+                {
+                    throw new InvalidOperationException("Detected clipped controls in setup window: " + clipped);
+                }
 
                 string scDir = Path.Combine(fullDir, "_test_desktop");
                 Directory.CreateDirectory(scDir);
@@ -172,8 +187,64 @@ namespace StreamOverlayCockpit.Setup
         public Button btnInstall { get; private set; }
         public Button btnUninstall { get; private set; }
         public Button btnCancel { get; private set; }
+        public BitmapImage LoadedLogo { get; private set; }
 
         private bool _isUninstallMode;
+
+        private static BitmapImage LoadEmbeddedLogo()
+        {
+            try
+            {
+                Assembly asm = Assembly.GetExecutingAssembly();
+                using (Stream s = asm.GetManifestResourceStream("InstallerLogo.png"))
+                {
+                    if (s == null) return null;
+                    var bmp = new BitmapImage();
+                    bmp.BeginInit();
+                    bmp.CacheOption = BitmapCacheOption.OnLoad;
+                    bmp.StreamSource = s;
+                    bmp.EndInit();
+                    bmp.Freeze();
+                    return bmp;
+                }
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public int CountClippedControls()
+        {
+            if (Window == null) return 0;
+            var root = Window.Content as FrameworkElement;
+            if (root == null) return 0;
+            int clipped = 0;
+            double maxW = root.ActualWidth;
+            double maxH = root.ActualHeight;
+            var queue = new Queue<DependencyObject>();
+            queue.Enqueue(root);
+            while (queue.Count > 0)
+            {
+                var cur = queue.Dequeue();
+                int count = VisualTreeHelper.GetChildrenCount(cur);
+                for (int i = 0; i < count; i++)
+                {
+                    var child = VisualTreeHelper.GetChild(cur, i);
+                    queue.Enqueue(child);
+                    var fe = child as FrameworkElement;
+                    if (fe != null && fe.Visibility == Visibility.Visible && fe.ActualWidth > 0 && fe.ActualHeight > 0)
+                    {
+                        Point pt = fe.TransformToAncestor(root).Transform(new Point(0, 0));
+                        if (pt.X < -1 || pt.Y < -1 || pt.X + fe.ActualWidth > maxW + 2 || pt.Y + fe.ActualHeight > maxH + 2)
+                        {
+                            clipped++;
+                        }
+                    }
+                }
+            }
+            return clipped;
+        }
 
         public void Initialize(bool isSelfTest, string targetDir, bool isUninstallMode)
         {
@@ -183,7 +254,7 @@ namespace StreamOverlayCockpit.Setup
 <Window xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'
         xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml'
         Title='ETS2 / ATS Stream Overlay Cockpit — Setup v" + Program.APP_VER + @"'
-        Width='660' Height='520'
+        Width='660' SizeToContent='Height'
         WindowStartupLocation='CenterScreen'
         ResizeMode='CanMinimize'
         Background='#070A0F'
@@ -192,18 +263,24 @@ namespace StreamOverlayCockpit.Setup
     <Grid Margin='18'>
         <Grid.RowDefinitions>
             <RowDefinition Height='Auto'/>
-            <RowDefinition Height='*'/>
+            <RowDefinition Height='Auto'/>
             <RowDefinition Height='Auto'/>
             <RowDefinition Height='Auto'/>
         </Grid.RowDefinitions>
 
         <Border Grid.Row='0' Background='#0E131B' BorderBrush='#1E293B' BorderThickness='1' CornerRadius='10' Padding='14,12' Margin='0,0,0,12'>
             <Grid>
-                <StackPanel>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width='Auto'/>
+                    <ColumnDefinition Width='*'/>
+                    <ColumnDefinition Width='Auto'/>
+                </Grid.ColumnDefinitions>
+                <Image x:Name='imgHeaderLogo' Grid.Column='0' Width='48' Height='48' Stretch='Uniform' VerticalAlignment='Center' Margin='0,0,14,0' SnapsToDevicePixels='True' Visibility='Collapsed'/>
+                <StackPanel Grid.Column='1' VerticalAlignment='Center'>
                     <TextBlock Text='ETS2 / ATS STREAM OVERLAY COCKPIT' FontSize='16' FontWeight='Bold' Foreground='#F8FAFC'/>
                     <TextBlock Text='Copyright (c) 2026 FooZzee. All Rights Reserved. Proprietary Freeware License.' FontSize='11' Foreground='#94A3B8'/>
                 </StackPanel>
-                <TextBlock Text='v" + Program.APP_VER + @"' HorizontalAlignment='Right' VerticalAlignment='Center' FontSize='12' FontWeight='Bold' Foreground='#00E5FF'/>
+                <TextBlock Grid.Column='2' Text='v" + Program.APP_VER + @"' VerticalAlignment='Center' Margin='12,0,0,0' FontSize='12' FontWeight='Bold' Foreground='#00E5FF'/>
             </Grid>
         </Border>
 
@@ -257,6 +334,14 @@ namespace StreamOverlayCockpit.Setup
 </Window>";
 
             Window = (Window)XamlReader.Parse(xaml);
+            var imgHeaderLogo = (Image)Window.FindName("imgHeaderLogo");
+            LoadedLogo = LoadEmbeddedLogo();
+            if (imgHeaderLogo != null && LoadedLogo != null)
+            {
+                imgHeaderLogo.Source = LoadedLogo;
+                imgHeaderLogo.Visibility = Visibility.Visible;
+                RenderOptions.SetBitmapScalingMode(imgHeaderLogo, BitmapScalingMode.HighQuality);
+            }
             txtInstallDir = (TextBox)Window.FindName("txtInstallDir");
             var btnBrowseDir = (Button)Window.FindName("btnBrowseDir");
             chkEts2 = (CheckBox)Window.FindName("chkEts2");

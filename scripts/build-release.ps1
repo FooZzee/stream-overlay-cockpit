@@ -19,28 +19,45 @@ $ScriptPath = if ($MyInvocation.MyCommand.Path -and (Test-Path -LiteralPath $MyI
 $Root = Split-Path -Parent (Split-Path -Parent $ScriptPath)
 $Version = 'v0.0.4'
 $PubGh = Join-Path $Root '_publish_github'
+$DistGh = Join-Path $Root '_dist_github'
 $PubRel = Join-Path $Root '_publish_release'
 $StageZip = Join-Path $Root '_stage_zip_tmp'
+$LogoPath = Join-Path $Root 'assets\img\logo.png'
 
+if (-not (Test-Path -LiteralPath $LogoPath)) {
+    throw "Required installer logo not found: $LogoPath"
+}
+
+# 1. Гарантируем UTF-8 with BOM на всех .ps1 скриптах
 $utf8Bom = New-Object System.Text.UTF8Encoding($true)
 Get-ChildItem -Path (Join-Path $Root 'scripts') -Filter '*.ps1' | ForEach-Object {
     $txt = [System.IO.File]::ReadAllText($_.FullName, [System.Text.Encoding]::UTF8)
     [System.IO.File]::WriteAllText($_.FullName, $txt, $utf8Bom)
 }
 
+# 2. Чистая сборка _publish_github и _stage_zip_tmp
 foreach ($dir in @($PubGh, $StageZip)) {
     if (Test-Path -LiteralPath $dir) { Remove-Item -LiteralPath $dir -Recurse -Force }
     New-Item -ItemType Directory -Path $dir -Force | Out-Null
 }
 if (-not (Test-Path -LiteralPath $PubRel)) { New-Item -ItemType Directory -Path $PubRel -Force | Out-Null }
 
+# Синхронизация _dist_github (строго сохраняя .git и .gitattributes)
+if (-not (Test-Path -LiteralPath $DistGh)) { New-Item -ItemType Directory -Path $DistGh -Force | Out-Null }
+Get-ChildItem -Path $DistGh -Force | Where-Object { $_.Name -notin @('.git', '.gitattributes') } | ForEach-Object {
+    Remove-Item -LiteralPath $_.FullName -Recurse -Force
+}
+
 $userDirs = @('assets', 'redist', 'scripts')
 foreach ($d in $userDirs) {
     Copy-Item -Path (Join-Path $Root $d) -Destination (Join-Path $PubGh $d) -Recurse -Force
+    Copy-Item -Path (Join-Path $Root $d) -Destination (Join-Path $DistGh $d) -Recurse -Force
     Copy-Item -Path (Join-Path $Root $d) -Destination (Join-Path $StageZip $d) -Recurse -Force
 }
 
 Copy-Item -Path (Join-Path $Root 'build-installer') -Destination (Join-Path $PubGh 'build-installer') -Recurse -Force
+Copy-Item -Path (Join-Path $Root 'build-installer') -Destination (Join-Path $DistGh 'build-installer') -Recurse -Force
+
 $stageBuildRel = Join-Path $StageZip 'scripts\build-release.ps1'
 if (Test-Path -LiteralPath $stageBuildRel) { Remove-Item -LiteralPath $stageBuildRel -Force }
 
@@ -55,9 +72,11 @@ foreach ($f in $rootFiles) {
     $src = Join-Path $Root $f
     if (-not (Test-Path -LiteralPath $src)) { throw "Missing required release file: $f" }
     Copy-Item -LiteralPath $src -Destination (Join-Path $PubGh $f) -Force
+    Copy-Item -LiteralPath $src -Destination (Join-Path $DistGh $f) -Force
     Copy-Item -LiteralPath $src -Destination (Join-Path $StageZip $f) -Force
 }
 
+# 3. Упаковка пользовательского ZIP
 $zipPath = Join-Path $PubRel "Stream_Overlay_Cockpit-$Version.zip"
 if (Test-Path -LiteralPath $zipPath) { Remove-Item -LiteralPath $zipPath -Force }
 Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -66,6 +85,7 @@ Remove-Item -LiteralPath $StageZip -Recurse -Force
 
 Copy-Item -LiteralPath (Join-Path $Root "RELEASE_NOTES_$Version.md") -Destination (Join-Path $PubRel "RELEASE_NOTES_$Version.md") -Force
 
+# 4. Компиляция EXE-установщика через csc.exe с вшитым логотипом InstallerLogo.png
 $csc = 'C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe'
 $wpfDir = 'C:\Windows\Microsoft.NET\Framework64\v4.0.30319\WPF'
 $exePath = Join-Path $PubRel "Stream_Overlay_Cockpit_Setup_$Version.exe"
@@ -75,6 +95,7 @@ if (Test-Path -LiteralPath $exePath) { Remove-Item -LiteralPath $exePath -Force 
     "/out:$exePath" `
     "/win32icon:$(Join-Path $Root 'build-installer\app.ico')" `
     "/resource:$zipPath,OverlayPackage.zip" `
+    "/resource:$LogoPath,InstallerLogo.png" `
     "/r:System.dll" `
     "/r:System.Core.dll" `
     "/r:System.Drawing.dll" `
