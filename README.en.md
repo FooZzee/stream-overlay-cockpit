@@ -1,12 +1,13 @@
 <div align="center">
-  <img src="./assets/img/logo.png" alt="ETS2 / ATS Stream Overlay Cockpit Logo" width="112" />
-  <h1>ETS2 / ATS Stream Overlay Cockpit v0.0.4</h1>
-  <p><strong>Zero-blur 60 FPS telemetry HUD for Euro Truck Simulator 2 &amp; American Truck Simulator</strong></p>
+  <img src="./assets/img/logo.png" alt="ETS2 / ATS Stream Overlay Cockpit Logo" width="124" />
+  <h1>ETS2 / ATS Stream Overlay Cockpit</h1>
+  <p><strong>Zero-Blur 60 FPS Telemetry HUD &amp; Matte 3D Chat for Euro Truck Simulator 2 and American Truck Simulator</strong></p>
 
   [![Release](https://img.shields.io/badge/Release-v0.0.4-00e5ff?style=flat)](https://github.com/FooZzee/stream-overlay-cockpit/releases/tag/v0.0.4)
   [![Platform](https://img.shields.io/badge/Platform-Windows_x64-0078d4?style=flat)](https://www.microsoft.com/windows)
   [![SCS SDK](https://img.shields.io/badge/SCS_SDK-1.16-f59e0b?style=flat)](https://modding.scssoft.com/wiki/Documentation/Engine/SDK/Telemetry)
   [![OBS Studio](https://img.shields.io/badge/OBS_Studio-28%2B-5c5cf0?style=flat)](https://obsproject.com/)
+  [![FPS](https://img.shields.io/badge/60_FPS-Zero_Blur-22c55e?style=flat)](#architecture-en)
   [![License](https://img.shields.io/badge/License-All_Rights_Reserved-ef4444?style=flat)](./LICENSE)
 
   <br />
@@ -14,45 +15,86 @@
   [![Support Project](https://img.shields.io/badge/Support_Project-FF5E5B?style=for-the-badge&logo=heart&logoColor=white)](https://www.donationalerts.com/r/foozzee)
 
   <p>
-    <a href="./README.md">[Main README]</a> •
-    <a href="./README.ru.md">[RU] Русская версия</a> •
-    <a href="./CHANGELOG.en.md">Changelog</a> •
-    <a href="./commands.en.md">Chat Commands</a> •
-    <a href="./RELEASE_NOTES_v0.0.4.md">Release Notes v0.0.4</a>
+    <a href="./README.md">README.md</a> ·
+    <a href="./README.ru.md">Русский (README.ru.md)</a> ·
+    <a href="./CHANGELOG.en.md">Changelog</a> ·
+    <a href="./commands.en.md">Chat Commands</a> ·
+    <a href="./RELEASE_NOTES_v0.0.4.md">Release v0.0.4</a>
   </p>
 </div>
 
 ---
 
-## Engineering Overview
+## Live Interface Showcase
 
-Most browser overlays drop frames in OBS Studio due to GPU-heavy `backdrop-filter: blur` passes, unthrottled DOM churn, and external server dependencies. **Stream Overlay Cockpit** is engineered for `1920×1080` and `2560×1440` broadcasts at a locked **60 FPS**:
+<div align="center">
+  <p><strong>16:9 Widescreen Cockpit HUD — 1920×1080 / 2560×1440 @ 60 FPS</strong></p>
+  <img src="./assets/previews/preview-cockpit-16x9.png" alt="ETS2 / ATS Stream Overlay Cockpit 16:9" width="100%" />
+</div>
 
-- **Native SCS SDK 1.16 Plugin (`overlayobs_foozzee_telemetry.dll`):** Captures speed, RPM, gear, air pressure, fuel, coolant/oil temperatures, pedal travel, steering angle, cargo telemetry, and real-time ETA directly from Shared Memory over a lightweight local HTTP bridge (`127.0.0.1:30002`).
-- **Matte 3D-Carousel Chat (`rgba(14, 16, 20, 0.70)`):** Borderless dark-matte message pills with zero `backdrop-filter`, height-aware dynamic DOM pruning, native Twitch IRC emotes (`Array.from` Unicode code points) + **7TV / BTTV / FFZ**, real **Twitch GQL** badges, and an infinite 3D flip cycle (**Chat 5m → `!0–!5` Game Poll 1m → Chat 5m → Socials Card 1m**).
-- **Game Rating Poll & 7 Chat Commands:** Captures `!0–!5` votes before `hideCommands`, computes the `1–5` rating average without `!0` distortion, prioritizes manual `chat.gameTitle` over `auto` detection, and exposes individual toggles/cooldowns for `!honk`, `!cb`, `!route`, `!stats`, `!truck`, `!driver`, and `!bet`.
-- **Bilingual Setup (`RU / EN`) & Focused WPF Configurator:** Standalone `.exe` installer with live **Русский / English** switching, automatic DLL deployment, `Overlay Bridge` / `Overlay Configurator` / `Overlay Update` shortcuts, and safe `Uninstall.exe` preserving `config.js`.
+<table>
+  <tr>
+    <td width="50%" align="center" valign="top">
+      <strong>4:3 Standard Webcam Frame</strong><br />
+      <img src="./assets/previews/preview-cockpit-4x3.png" alt="4:3 Standard Webcam Frame" width="100%" />
+      <p>Cluster-height aligned camera frame (<code>325×244 px @ 1080p</code> | <code>397×298 px @ 1440p</code>) with an integrated live trip clock and 100% opaque <code>#0B0F17</code> gauges.</p>
+    </td>
+    <td width="50%" align="center" valign="top">
+      <strong>Matte 3D Game Rating Poll (<code>!0–!5</code>)</strong><br />
+      <img src="./assets/previews/preview-poll-3d.png" alt="Matte 3D Game Rating Poll" width="100%" />
+      <p>Borderless <code>rgba(14, 16, 20, 0.70)</code> 3D-carousel face: captures votes before <code>hideCommands</code>, computes the <code>1–5</code> rating without <code>!0</code> distortion, and respects manual <code>gameTitle</code>.</p>
+    </td>
+  </tr>
+</table>
 
 ---
 
-## Visual Previews
+## Desktop Suite & Custom Icons
 
-### Cockpit HUD — 4:3 Webcam Frame (Default)
-![ETS2 / ATS Stream Overlay Cockpit 4:3](./assets/previews/preview-cockpit-4x3.png)
+<table>
+  <tr>
+    <td width="33.3%" align="center" valign="top">
+      <img src="./assets/previews/icon-bridge.png" alt="Overlay Bridge Icon" width="72" /><br />
+      <strong><code>Overlay Bridge</code></strong><br />
+      <sub>Local HTTP telemetry bridge (<code>127.0.0.1:30002</code>) streaming SCS SDK 1.16 Shared Memory packets with near-zero CPU overhead.</sub>
+    </td>
+    <td width="33.3%" align="center" valign="top">
+      <img src="./assets/previews/icon-configurator.png" alt="Overlay Configurator Icon" width="72" /><br />
+      <strong><code>Overlay Configurator</code></strong><br />
+      <sub>Focused WPF tool for Twitch, DonationAlerts, poll <code>gameTitle</code> &amp; 3D timings, social links, and all 7 chat commands.</sub>
+    </td>
+    <td width="33.3%" align="center" valign="top">
+      <img src="./assets/previews/icon-updater.png" alt="Overlay Update Icon" width="72" /><br />
+      <strong><code>Overlay Update</code></strong><br />
+      <sub>GitHub release updater syncing new builds while safely preserving your local <code>config.js</code> credentials.</sub>
+    </td>
+  </tr>
+</table>
 
-### Cockpit HUD — 16:9 Widescreen Webcam Frame (`?cam=16x9`)
-![ETS2 / ATS Stream Overlay Cockpit 16:9](./assets/previews/preview-cockpit-16x9.png)
+---
 
-### Matte 3D-Flip Game Rating Poll (`!0–!5`)
-![Matte 3D Game Rating Poll](./assets/previews/preview-poll-3d.png)
+<a id="architecture-en"></a>
+## Architecture Pipeline & Key Capabilities
+
+```text
+ETS2 / ATS Shared Memory ─▶ overlayobs_foozzee_telemetry.dll ─▶ Local HTTP Bridge (127.0.0.1:30002) ─▶ OBS Browser Source @ 60 FPS (Zero Blur)
+```
+
+| Subsystem | Engineering Details |
+| :--- | :--- |
+| **Cockpit Telemetry Cluster** | Speedometer `0–160` (`km/h` / `mph`), tachometer, active gear, pneumatic air pressure, fuel level, coolant/oil temps, pedal travel, steering angle, wear, and live ETA |
+| **Matte 3D Chat (`70%`)** | Borderless `rgba(14, 16, 20, 0.70)` pills with zero `backdrop-filter`, height-aware DOM pruning, native Twitch emotes (`Array.from`) + **7TV / BTTV / FFZ**, real **Twitch GQL** badges |
+| **Infinite 3D Carousel** | `5m Chat -> 1m Poll (!0–!5) -> 5m Chat -> 1m Socials` flip cycle (`rotateY(180deg)`) with hidden inactive face (`opacity: 0; pointer-events: none;`) |
+| **7 Chat Commands** | `!honk` (air horn), `!cb` (CB radio card), `!route` (job & cargo), `!stats` (session summary), `!truck` (truck & wear), `!driver` (driver card), `!bet` (trip prediction) |
+| **Bilingual Setup (`RU / EN`)** | Auto-sized WPF wizard (`SizeToContent.Height`), live `Русский / English` toggle persisted to `config.js` & `InstallLanguage`, auto DLL install, and safe `Uninstall.exe` |
 
 ---
 
 ## Quick Start (3 Steps)
 
-1. **Install:** Run `Stream_Overlay_Cockpit_Setup_v0.0.4.exe`, select **English**, pick your installation folder (default `C:\Stream_Overlay_Cockpit`), and verify ETS2/ATS paths for automatic `overlayobs_foozzee_telemetry.dll` deployment.
-2. **Configure:** Open **`Overlay Configurator`** from your Desktop (or `Configure-Overlay.bat`) to set your Twitch channel, DonationAlerts socket token, poll `gameTitle` (`auto` or custom), social links, and chat command toggles.
-3. **Add to OBS Studio:** Add a **Browser Source**, **uncheck Local file**, set URL to `file:///C:/Stream_Overlay_Cockpit/ets2-desktop.html` (or append `?cam=16x9`), Width `1920`, Height `1080`, FPS `60`. Launch **`Overlay Bridge`** before starting ETS2/ATS.
+1. **Install:** Run `Stream_Overlay_Cockpit_Setup_v0.0.4.exe`, pick **English**, choose your folder (default `C:\Stream_Overlay_Cockpit`), and verify ETS2/ATS paths for automatic `overlayobs_foozzee_telemetry.dll` installation.
+2. **Configure:** Open **`Overlay Configurator`** from your Desktop (or `Configure-Overlay.bat`) to set your Twitch channel, DonationAlerts socket token, poll `gameTitle` (`auto` or custom), social links, and command toggles.
+3. **Add to OBS Studio:** Create a **Browser Source**, **uncheck Local file**, enter `file:///C:/Stream_Overlay_Cockpit/ets2-desktop.html` (`1920×1080`, `60 FPS`). Launch **`Overlay Bridge`** before starting ETS2/ATS.
 
 ---
 
@@ -68,16 +110,17 @@ Most browser overlays drop frames in OBS Studio due to GPU-heavy `backdrop-filte
 
 ---
 
-## Author & Links — FooZzee
+## Author — FooZzee
 
-- **GitHub:** https://github.com/FooZzee/stream-overlay-cockpit
-- **Website:** https://foozzee.ru
-- **Twitch:** https://twitch.tv/foozzee
-- **YouTube:** https://youtube.com/@foozzee
-- **Telegram:** https://t.me/foozzeestream
-- **VK:** https://vk.ru/gtfun
-- **DonationAlerts:** https://www.donationalerts.com/r/foozzee
+<p align="left">
+  <a href="https://github.com/FooZzee/stream-overlay-cockpit"><img src="https://img.shields.io/badge/GitHub-FooZzee-181717?style=flat&logo=github" alt="GitHub" /></a>
+  <a href="https://foozzee.ru"><img src="https://img.shields.io/badge/Website-foozzee.ru-00e5ff?style=flat" alt="Website" /></a>
+  <a href="https://twitch.tv/foozzee"><img src="https://img.shields.io/badge/Twitch-foozzee-9146FF?style=flat&logo=twitch&logoColor=white" alt="Twitch" /></a>
+  <a href="https://youtube.com/@foozzee"><img src="https://img.shields.io/badge/YouTube-@foozzee-FF0000?style=flat&logo=youtube&logoColor=white" alt="YouTube" /></a>
+  <a href="https://t.me/foozzeestream"><img src="https://img.shields.io/badge/Telegram-foozzeestream-26A5E4?style=flat&logo=telegram&logoColor=white" alt="Telegram" /></a>
+  <a href="https://vk.ru/gtfun"><img src="https://img.shields.io/badge/VK-gtfun-0077FF?style=flat&logo=vk&logoColor=white" alt="VK" /></a>
+  <a href="https://www.donationalerts.com/r/foozzee"><img src="https://img.shields.io/badge/DonationAlerts-foozzee-F57C00?style=flat" alt="DonationAlerts" /></a>
+</p>
 
-> Proprietary Freeware License (All Rights Reserved). Free personal use for live streams and video broadcasts; commercial resale, rebranding, or public redistribution of modified builds without written permission is prohibited. See [LICENSE](./LICENSE).
-
-Copyright (c) 2026 FooZzee. All Rights Reserved.
+> Proprietary Freeware License (All Rights Reserved). Free personal use for live streams and video broadcasts; commercial resale, rebranding, or public redistribution of modified builds without written permission is prohibited. See [LICENSE](./LICENSE).  
+> Copyright (c) 2026 FooZzee. All Rights Reserved.

@@ -1,7 +1,24 @@
-# 📜 Version History — ETS2 / ATS Stream Overlay Cockpit
+# Version History — ETS2 / ATS Stream Overlay Cockpit
 
-> **ETS2 / ATS Stream Overlay Cockpit v0.0.2**  
-> Official release log and development history for the standalone truck cockpit HUD stream overlay designed for Euro Truck Simulator 2 and American Truck Simulator.
+> **ETS2 / ATS Stream Overlay Cockpit v0.0.4**  
+> Official release log and engineering history for the standalone cockpit telemetry HUD stream overlay for Euro Truck Simulator 2 and American Truck Simulator.
+
+## [0.0.4] - 2026-11-27
+
+### Key Improvements & Architecture
+
+* **Zero-Blur 60 FPS Compositor:** Eliminated GPU-heavy `backdrop-filter: blur` passes in favor of dense matte surfaces (`rgba(14, 16, 20, 0.70)`), delivering locked 60 FPS rendering in OBS Studio (`1080p` and `1440p`).
+* **Matte 3D-Carousel Chat Dock (`ets2-chat-3d.css`, `ets2-chat-carousel.js`, `ets2-emotes.js`):** Borderless floating message pills without shadows or outlines, height-aware dynamic DOM pruning, native Twitch IRC emotes (`Array.from` Unicode code points) + **7TV / BTTV / FFZ**, real **Twitch GQL** `broadcastBadges` with text fallbacks, and an infinite 3D flip cycle (**Chat 5m -> `!0–!5` Poll 1m -> Chat 5m -> Socials Card 1m**).
+* **`!0–!5` Game Rating Poll:** Intercepts raw votes before `hideCommands` filtering, computes a `1–5` rating average without `!0` distortion, and prioritizes manual `chat.gameTitle` over `auto` detection (ETS2/ATS telemetry & Twitch GQL).
+* **Focused WPF Configurator (`Overlay Configurator`):** Streamlined UI for Twitch, DonationAlerts, 3D-carousel timings, `gameTitle`, social links (`Telegram`, `VK`, `YouTube`), and individual flags/cooldowns for all 7 chat commands (`!honk`, `!cb`, `!route`, `!stats`, `!truck`, `!driver`, `!bet`), plus fixed `PasswordBox`/`TextBox` token visibility toggle.
+* **Bilingual WPF Installer & Uninstaller (`Русский / English`):** Auto-sized layout (`SizeToContent.Height`), embedded `logo.png` header, live `RU / EN` language switch persisted to `config.js` and `InstallLanguage` registry value, automatic `overlayobs_foozzee_telemetry.dll` deployment, multi-layer `16/32/48/256` `.ico` desktop shortcuts (**`Overlay Bridge`**, **`Overlay Configurator`**, **`Overlay Update`**), and safe `Uninstall.exe` preserving `config.js`.
+
+## [0.0.3] - 2026-11-23
+
+### Engineering Enhancements
+
+* **Extended SCS SDK 1.16 Telemetry (`127.0.0.1:30002`):** Live ETA calculation, pneumatic air brake pressure, fuel volume, engine coolant/oil temperatures, pedal deflection bars, steering wheel angle, and truck/trailer/cargo wear tracking.
+* **Cockpit Presets & Chat Commands:** Dashboard backlight presets (`?theme=amber` / `?theme=ice`), instant webcam aspect switching (`4:3` / `16:9`), integrated trip timer, and the base 7-command chat engine with role gates and per-user cooldowns.
 
 ## [0.0.2] - 2026-11-19
 
@@ -62,7 +79,7 @@ First stable release of the flagship **ETS2 / ATS Stream Overlay Cockpit** serie
 * **Native FlowDocument Viewer:** In-app documentation and changelog reader with rich formatting, syntax highlighting, and zero dependency on Windows Notepad.
 
 > [!NOTE]
-> **ETS2 / ATS Stream Overlay Cockpit** is open-source software Licensed under Proprietary Freeware License (All Rights Reserved). Consider starring the repository on GitHub or supporting the developer FooZzee!
+> **ETS2 / ATS Stream Overlay Cockpit** is licensed under the Proprietary Freeware License (All Rights Reserved). Consider starring the repository on GitHub or supporting the developer FooZzee!
 
 ---
 
