@@ -34,7 +34,8 @@ $ExampleConfigPath = Join-Path $ProjectRoot 'config.example.js'
 $IconPath = Join-Path $ProjectRoot 'assets\icons\cockpit-configurator.ico'
 $LauncherVbsPath = Join-Path $ProjectRoot 'Configure-Overlay.vbs'
 $LauncherBatPath = Join-Path $ProjectRoot 'Configure-Overlay.bat'
-$ShortcutName = 'ETS2-ATS Overlay Configurator.lnk'
+$ShortcutName = 'Overlay Configurator.lnk'
+$LegacyShortcutNames = @('ETS2-ATS Overlay Configurator.lnk')
 
 Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName PresentationCore
@@ -136,6 +137,12 @@ function Set-ConfiguratorDesktopShortcut {
         [bool]$Create,
         [string]$DesktopDir = [Environment]::GetFolderPath([Environment+SpecialFolder]::DesktopDirectory)
     )
+    foreach ($oldName in $LegacyShortcutNames) {
+        $oldPath = Join-Path $DesktopDir $oldName
+        if (Test-Path -LiteralPath $oldPath) {
+            Remove-Item -LiteralPath $oldPath -Force -ErrorAction SilentlyContinue
+        }
+    }
     $lnkPath = Join-Path $DesktopDir $ShortcutName
     if (-not $Create) {
         if (Test-Path -LiteralPath $lnkPath) {
@@ -635,7 +642,7 @@ $xaml = @"
                         <Border Style="{StaticResource CardPanel}">
                             <StackPanel>
                                 <TextBlock Text="ЯРЛЫК НА РАБОЧЕМ СТОЛЕ" Style="{StaticResource CardHeader}"/>
-                                <CheckBox x:Name="chkDesktopShortcut" Content="Создать / сохранять ярлык «ETS2-ATS Overlay Configurator» на Рабочем столе (с фирменной иконкой)" Style="{StaticResource ToggleSwitchStyle}" Foreground="#F1F5F9"/>
+                                <CheckBox x:Name="chkDesktopShortcut" Content="Создать / сохранять ярлык «Overlay Configurator» на Рабочем столе (с фирменной иконкой)" Style="{StaticResource ToggleSwitchStyle}" Foreground="#F1F5F9"/>
                                 <TextBlock Text="При снятии галочки ярлык удаляется с Рабочего стола при сохранении." Style="{StaticResource FieldHint}"/>
                             </StackPanel>
                         </Border>

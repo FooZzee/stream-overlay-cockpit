@@ -101,15 +101,22 @@ namespace StreamOverlayCockpit.Setup
                     regSubKey: SELF_TEST_REG_KEY);
 
                 string[] expectedLnks = {
-                    "ETS2-ATS Overlay Bridge.lnk",
-                    "ETS2-ATS Overlay Configurator.lnk",
-                    "ETS2-ATS Overlay Update.lnk"
+                    "Overlay Bridge.lnk",
+                    "Overlay Configurator.lnk",
+                    "Overlay Update.lnk"
                 };
                 foreach (string lnk in expectedLnks)
                 {
                     if (!File.Exists(Path.Combine(scDir, lnk)))
                     {
                         throw new InvalidOperationException("Missing shortcut after install: " + lnk);
+                    }
+                }
+                foreach (string oldLnk in new[] { "ETS2-ATS Overlay Bridge.lnk", "ETS2-ATS Overlay Configurator.lnk", "ETS2-ATS Overlay Update.lnk" })
+                {
+                    if (File.Exists(Path.Combine(scDir, oldLnk)))
+                    {
+                        throw new InvalidOperationException("Legacy shortcut still exists after install: " + oldLnk);
                     }
                 }
                 if (!File.Exists(Path.Combine(fullDir, "Uninstall.exe")) || !File.Exists(Path.Combine(fullDir, "config.js")))
@@ -172,7 +179,10 @@ namespace StreamOverlayCockpit.Setup
                 {
                     throw new InvalidOperationException("User config.js was deleted even when removeConfig=false!");
                 }
-                foreach (string lnk in new[] { "ETS2-ATS Overlay Bridge.lnk", "ETS2-ATS Overlay Configurator.lnk", "ETS2-ATS Overlay Update.lnk" })
+                foreach (string lnk in new[] {
+                    "Overlay Bridge.lnk", "Overlay Configurator.lnk", "Overlay Update.lnk",
+                    "ETS2-ATS Overlay Bridge.lnk", "ETS2-ATS Overlay Configurator.lnk", "ETS2-ATS Overlay Update.lnk"
+                })
                 {
                     if (File.Exists(Path.Combine(scDir, lnk)))
                     {
@@ -763,13 +773,20 @@ namespace StreamOverlayCockpit.Setup
                 ? Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory)
                 : shortcutDirOverride;
 
+            // Удаляем устаревшие имена ярлыков перед созданием актуальных
+            foreach (string oldLnk in new[] { "ETS2-ATS Overlay Bridge.lnk", "ETS2-ATS Overlay Configurator.lnk", "ETS2-ATS Overlay Update.lnk" })
+            {
+                string oldPath = Path.Combine(desk, oldLnk);
+                if (File.Exists(oldPath)) File.Delete(oldPath);
+            }
+
             if (createBridgeShortcut)
             {
                 string target = File.Exists(Path.Combine(installDir, "start-telemetry.bat"))
                     ? Path.Combine(installDir, "start-telemetry.bat")
                     : Path.Combine(installDir, "Start-Overlay.bat");
                 CreateShortcut(
-                    Path.Combine(desk, "ETS2-ATS Overlay Bridge.lnk"),
+                    Path.Combine(desk, "Overlay Bridge.lnk"),
                     target,
                     installDir,
                     Path.Combine(installDir, "assets", "icons", "cockpit-bridge.ico"),
@@ -780,7 +797,7 @@ namespace StreamOverlayCockpit.Setup
                 string vbs = Path.Combine(installDir, "Configure-Overlay.vbs");
                 string bat = Path.Combine(installDir, "Configure-Overlay.bat");
                 CreateShortcut(
-                    Path.Combine(desk, "ETS2-ATS Overlay Configurator.lnk"),
+                    Path.Combine(desk, "Overlay Configurator.lnk"),
                     File.Exists(vbs) ? vbs : bat,
                     installDir,
                     Path.Combine(installDir, "assets", "icons", "cockpit-configurator.ico"),
@@ -789,12 +806,13 @@ namespace StreamOverlayCockpit.Setup
             if (createUpdateShortcut)
             {
                 CreateShortcut(
-                    Path.Combine(desk, "ETS2-ATS Overlay Update.lnk"),
+                    Path.Combine(desk, "Overlay Update.lnk"),
                     Path.Combine(installDir, "Update-Overlay.bat"),
                     installDir,
                     Path.Combine(installDir, "assets", "icons", "cockpit-updater.ico"),
                     safeLang == "en" ? "ETS2 / ATS Overlay Updater" : "Обновление оверлея ETS2 / ATS");
             }
+            NotifyShellIconsChanged();
 
             UpdateProgress(92, T("ProgRegister"));
             string uninstExe = Path.Combine(installDir, "Uninstall.exe");
@@ -857,11 +875,15 @@ namespace StreamOverlayCockpit.Setup
                 string desk = string.IsNullOrEmpty(shortcutDirOverride)
                     ? Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory)
                     : shortcutDirOverride;
-                foreach (string lnkName in new[] { "ETS2-ATS Overlay Bridge.lnk", "ETS2-ATS Overlay Configurator.lnk", "ETS2-ATS Overlay Update.lnk" })
+                foreach (string lnkName in new[] {
+                    "Overlay Bridge.lnk", "Overlay Configurator.lnk", "Overlay Update.lnk",
+                    "ETS2-ATS Overlay Bridge.lnk", "ETS2-ATS Overlay Configurator.lnk", "ETS2-ATS Overlay Update.lnk"
+                })
                 {
                     string lnk = Path.Combine(desk, lnkName);
                     if (File.Exists(lnk)) File.Delete(lnk);
                 }
+                NotifyShellIconsChanged();
             }
 
             foreach (string g in new[] { ets2Path, atsPath })
@@ -873,6 +895,14 @@ namespace StreamOverlayCockpit.Setup
 
             try { Registry.CurrentUser.DeleteSubKeyTree(regSubKey, false); } catch { }
             UpdateProgress(100, T("ProgUninstDone"));
+        }
+
+        [DllImport("shell32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern void SHChangeNotify(uint wEventId, uint uFlags, IntPtr dwItem1, IntPtr dwItem2);
+
+        private static void NotifyShellIconsChanged()
+        {
+            try { SHChangeNotify(0x08000000, 0x0000, IntPtr.Zero, IntPtr.Zero); } catch { }
         }
 
         private static void CreateShortcut(string lnkPath, string targetPath, string workDir, string iconPath, string description)

@@ -115,7 +115,7 @@ $Strings = @{
         BtnShowToken      = "Show"
         BtnHideToken      = "Hide"
         GrpOptions        = "6. Shortcuts & Finish Options"
-        ChkShortcut       = "Create Desktop Shortcut ('ETS2-ATS Overlay Bridge')"
+        ChkShortcut       = "Create Desktop Shortcut ('Overlay Bridge')"
         ChkUpdateShortcut = "Create Update Checker (Pip-Boy 3000) shortcut on Desktop"
         ChkOpenFolder     = "Open installation folder after setup"
         StarCardText      = "Enjoying the overlay? Please give the project a Star on GitHub — it really helps!"
@@ -206,7 +206,7 @@ $Strings = @{
         BtnShowToken      = "Показать"
         BtnHideToken      = "Скрыть"
         GrpOptions        = "6. Ярлыки и параметры"
-        ChkShortcut       = "Создать ярлык на Рабочем столе ('ETS2-ATS Overlay Bridge')"
+        ChkShortcut       = "Создать ярлык на Рабочем столе ('Overlay Bridge')"
         ChkUpdateShortcut = "Создать ярлык проверки обновлений (Pip-Boy 3000) на Рабочем столе"
         ChkOpenFolder     = "Открыть папку установки после завершения"
         StarCardText      = "Нравится оверлей? Поддержите проект звездой на GitHub — это очень помогает развитию!"
@@ -2091,8 +2091,12 @@ $btnInstall.Add_Click({
         $wsh = New-Object -ComObject WScript.Shell
 
         # Ярлык телеметрии
+        foreach ($oldSc in @('ETS2-ATS Overlay Bridge.lnk', 'ETS2-ATS Overlay Update.lnk', 'ETS2-ATS Overlay Configurator.lnk')) {
+            $oldScPath = Join-Path $desktopDir $oldSc
+            if (Test-Path -LiteralPath $oldScPath) { Remove-Item -LiteralPath $oldScPath -Force -ErrorAction SilentlyContinue }
+        }
         if ($chkShortcut.IsChecked) {
-            $scPath = Join-Path $desktopDir "ETS2-ATS Overlay Bridge.lnk"
+            $scPath = Join-Path $desktopDir "Overlay Bridge.lnk"
             $sc = $wsh.CreateShortcut($scPath)
             $sc.TargetPath = Join-Path $instDir 'start-telemetry.bat'
             $sc.WorkingDirectory = $instDir
@@ -2106,7 +2110,7 @@ $btnInstall.Add_Click({
 
         # Ярлык проверки обновлений (Pip-Boy 3000)
         if ($chkUpdateShortcut.IsChecked) {
-            $upScPath = Join-Path $desktopDir "ETS2-ATS Overlay Update.lnk"
+            $upScPath = Join-Path $desktopDir "Overlay Update.lnk"
             $upSc = $wsh.CreateShortcut($upScPath)
             $upSc.TargetPath = Join-Path $instDir 'Update-Overlay.bat'
             $upSc.WorkingDirectory = $instDir
@@ -2119,7 +2123,7 @@ $btnInstall.Add_Click({
         }
 
         # Ярлык графического конфигуратора
-        $cfgScPath = Join-Path $desktopDir "ETS2-ATS Overlay Configurator.lnk"
+        $cfgScPath = Join-Path $desktopDir "Overlay Configurator.lnk"
         $cfgSc = $wsh.CreateShortcut($cfgScPath)
         $cfgSc.TargetPath = Join-Path $instDir 'Configure-Overlay.bat'
         $cfgSc.WorkingDirectory = $instDir
