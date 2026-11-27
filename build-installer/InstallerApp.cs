@@ -2,11 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Markup;
@@ -33,7 +35,8 @@ namespace StreamOverlayCockpit.Setup
         {
             if (args != null && args.Length >= 2 && args[0].Equals("--self-test", StringComparison.OrdinalIgnoreCase))
             {
-                return RunSelfTest(args[1]);
+                string testLang = (args.Length >= 3) ? args[2] : null;
+                return RunSelfTest(args[1], testLang);
             }
             if (args != null && args.Length >= 2 && args[0].Equals("--self-test-uninstall", StringComparison.OrdinalIgnoreCase))
             {
@@ -53,29 +56,22 @@ namespace StreamOverlayCockpit.Setup
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Ошибка запуска установщика:\n\n" + ex.ToString(), "Ошибка установщика", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Installer startup error:\n\n" + ex.ToString(), "Installer Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return 1;
             }
         }
 
-        private static int RunSelfTest(string targetDir)
+        private static int RunSelfTest(string targetDir, string langOverride)
         {
-            var logLines = new List<string>();
-            Action<string> log = (msg) =>
-            {
-                string line = "[" + DateTime.Now.ToString("HH:mm:ss.fff") + "] " + msg;
-                logLines.Add(line);
-                Console.WriteLine(line);
-            };
-
             try
             {
                 string fullDir = Path.GetFullPath(targetDir);
-                if (!Directory.Exists(fullDir)) Directory.CreateDirectory(fullDir);
-                log("Starting installer self-test into: " + fullDir);
+                if (Directory.Exists(fullDir)) Directory.Delete(fullDir, true);
+                Directory.CreateDirectory(fullDir);
+                Console.WriteLine("[" + DateTime.Now.ToString("HH:mm:ss.fff") + "] Starting installer self-test into: " + fullDir);
 
                 var controller = new SetupController();
-                controller.Initialize(isSelfTest: true, targetDir: fullDir, isUninstallMode: false);
+                controller.Initialize(isSelfTest: true, targetDir: fullDir, isUninstallMode: false, langOverride: langOverride);
                 controller.Window.Show();
                 controller.Window.UpdateLayout();
 
@@ -84,10 +80,10 @@ namespace StreamOverlayCockpit.Setup
                 {
                     throw new InvalidOperationException("Embedded resource 'InstallerLogo.png' failed to decode.");
                 }
-                log("Embedded logo verified: " + logoBmp.PixelWidth + "x" + logoBmp.PixelHeight);
+                Console.WriteLine("[" + DateTime.Now.ToString("HH:mm:ss.fff") + "] Embedded logo verified: " + logoBmp.PixelWidth + "x" + logoBmp.PixelHeight);
 
                 int clipped = controller.CountClippedControls();
-                log("CLIPPED_CONTROLS=" + clipped);
+                Console.WriteLine("[" + DateTime.Now.ToString("HH:mm:ss.fff") + "] CLIPPED_CONTROLS=" + clipped);
                 if (clipped > 0)
                 {
                     throw new InvalidOperationException("Detected clipped controls in setup window: " + clipped);
@@ -95,19 +91,36 @@ namespace StreamOverlayCockpit.Setup
 
                 string scDir = Path.Combine(fullDir, "_test_desktop");
                 Directory.CreateDirectory(scDir);
-                controller.PerformInstallation(fullDir, null, null, createConfigShortcut: true, shortcutDirOverride: scDir, regSubKey: SELF_TEST_REG_KEY);
+                controller.PerformInstallation(
+                    fullDir, null, null,
+                    createBridgeShortcut: true,
+                    createConfigShortcut: true,
+                    createUpdateShortcut: true,
+                    selectedLang: controller.CurrentLang,
+                    shortcutDirOverride: scDir,
+                    regSubKey: SELF_TEST_REG_KEY);
 
-                string lnk = Path.Combine(scDir, "ETS2-ATS Overlay Configurator.lnk");
-                if (!File.Exists(Path.Combine(fullDir, "Uninstall.exe")) || !File.Exists(lnk))
+                string[] expectedLnks = {
+                    "ETS2-ATS Overlay Bridge.lnk",
+                    "ETS2-ATS Overlay Configurator.lnk",
+                    "ETS2-ATS Overlay Update.lnk"
+                };
+                foreach (string lnk in expectedLnks)
                 {
-                    throw new InvalidOperationException("Missing Uninstall.exe or configurator shortcut after self-test install.");
+                    if (!File.Exists(Path.Combine(scDir, lnk)))
+                    {
+                        throw new InvalidOperationException("Missing shortcut after install: " + lnk);
+                    }
+                }
+                if (!File.Exists(Path.Combine(fullDir, "Uninstall.exe")) || !File.Exists(Path.Combine(fullDir, "config.js")))
+                {
+                    throw new InvalidOperationException("Missing Uninstall.exe or config.js after self-test install.");
                 }
 
-                // Очистка тестового ключа реестра
                 try { Registry.CurrentUser.DeleteSubKeyTree(SELF_TEST_REG_KEY, false); } catch { }
                 controller.Window.Close();
 
-                log("SELF_TEST=SUCCESS");
+                Console.WriteLine("[" + DateTime.Now.ToString("HH:mm:ss.fff") + "] SELF_TEST=SUCCESS LANG=" + controller.CurrentLang);
                 return 0;
             }
             catch (Exception ex)
@@ -130,25 +143,45 @@ namespace StreamOverlayCockpit.Setup
                 Directory.CreateDirectory(scDir);
 
                 var controller = new SetupController();
-                controller.Initialize(isSelfTest: true, targetDir: fullDir, isUninstallMode: false);
-                controller.PerformInstallation(fullDir, null, null, createConfigShortcut: true, shortcutDirOverride: scDir, regSubKey: SELF_TEST_REG_KEY);
+                controller.Initialize(isSelfTest: true, targetDir: fullDir, isUninstallMode: false, langOverride: "en");
+                controller.PerformInstallation(
+                    fullDir, null, null,
+                    createBridgeShortcut: true,
+                    createConfigShortcut: true,
+                    createUpdateShortcut: true,
+                    selectedLang: "en",
+                    shortcutDirOverride: scDir,
+                    regSubKey: SELF_TEST_REG_KEY);
 
-                // Создаём пользовательский config.js и проверяем, что при removeConfig: false он СОХРАНЯЕТСЯ
+                // Проверяем чтение InstallLanguage из реестра
+                using (RegistryKey rk = Registry.CurrentUser.OpenSubKey(SELF_TEST_REG_KEY))
+                {
+                    string savedLang = rk != null ? (rk.GetValue("InstallLanguage") as string) : null;
+                    if (!string.Equals(savedLang, "en", StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new InvalidOperationException("InstallLanguage not persisted in registry: " + savedLang);
+                    }
+                }
+
+                // Создаём маркер в config.js и проверяем сохранность при removeConfig: false
                 string userCfg = Path.Combine(fullDir, "config.js");
-                File.WriteAllText(userCfg, "window.OVERLAY_CONFIG = { lang: 'ru' };", Encoding.UTF8);
+                File.WriteAllText(userCfg, "window.OVERLAY_CONFIG = { lang: 'en' };", Encoding.UTF8);
 
-                controller.PerformUninstall(fullDir, null, null, removeConfig: false, removeShortcut: true, shortcutDirOverride: scDir, regSubKey: SELF_TEST_REG_KEY);
+                controller.PerformUninstall(fullDir, null, null, removeConfig: false, removeShortcuts: true, shortcutDirOverride: scDir, regSubKey: SELF_TEST_REG_KEY);
                 if (!File.Exists(userCfg))
                 {
                     throw new InvalidOperationException("User config.js was deleted even when removeConfig=false!");
                 }
-                if (File.Exists(Path.Combine(scDir, "ETS2-ATS Overlay Configurator.lnk")))
+                foreach (string lnk in new[] { "ETS2-ATS Overlay Bridge.lnk", "ETS2-ATS Overlay Configurator.lnk", "ETS2-ATS Overlay Update.lnk" })
                 {
-                    throw new InvalidOperationException("Configurator shortcut still exists after uninstall!");
+                    if (File.Exists(Path.Combine(scDir, lnk)))
+                    {
+                        throw new InvalidOperationException("Shortcut still exists after uninstall: " + lnk);
+                    }
                 }
 
-                // Теперь удаляем с removeConfig: true и проверяем полное очищение
-                controller.PerformUninstall(fullDir, null, null, removeConfig: true, removeShortcut: true, shortcutDirOverride: scDir, regSubKey: SELF_TEST_REG_KEY);
+                // Полное удаление с removeConfig: true
+                controller.PerformUninstall(fullDir, null, null, removeConfig: true, removeShortcuts: true, shortcutDirOverride: scDir, regSubKey: SELF_TEST_REG_KEY);
                 string uninstExe = Path.Combine(fullDir, "Uninstall.exe");
                 if (File.Exists(uninstExe)) File.Delete(uninstExe);
                 if (Directory.Exists(fullDir) && Directory.GetFileSystemEntries(fullDir).Length == 0)
@@ -180,16 +213,110 @@ namespace StreamOverlayCockpit.Setup
         public TextBox txtEts2Path { get; private set; }
         public CheckBox chkAts { get; private set; }
         public TextBox txtAtsPath { get; private set; }
-        public CheckBox chkConfigShortcut { get; private set; }
+        public CheckBox chkScBridge { get; private set; }
+        public CheckBox chkScConfig { get; private set; }
+        public CheckBox chkScUpdate { get; private set; }
         public CheckBox chkRemoveConfig { get; private set; }
         public ProgressBar progressBar { get; private set; }
         public TextBlock txtStatus { get; private set; }
         public Button btnInstall { get; private set; }
         public Button btnUninstall { get; private set; }
         public Button btnCancel { get; private set; }
+        public Button btnLangRu { get; private set; }
+        public Button btnLangEn { get; private set; }
         public BitmapImage LoadedLogo { get; private set; }
+        public string CurrentLang { get; private set; }
 
+        private TextBlock lblSecDir;
+        private TextBlock lblSecPlugins;
+        private TextBlock lblSecShortcuts;
+        private Button btnBrowseDir;
         private bool _isUninstallMode;
+
+        private static readonly Dictionary<string, Dictionary<string, string>> I18n = new Dictionary<string, Dictionary<string, string>>
+        {
+            {
+                "ru", new Dictionary<string, string>
+                {
+                    { "WindowTitle", "ETS2 / ATS Stream Overlay Cockpit — Установка v" + Program.APP_VER },
+                    { "HeaderSub", "Copyright (c) 2026 FooZzee. All Rights Reserved. Proprietary Freeware License." },
+                    { "SecDir", "1. ПАПКА УСТАНОВКИ" },
+                    { "Browse", "Обзор..." },
+                    { "SecPlugins", "2. ПЛАГИН ТЕЛЕМЕТРИИ SCS SDK 1.16 (overlayobs_foozzee_telemetry.dll)" },
+                    { "ChkEts2", "Установить плагин в Euro Truck Simulator 2" },
+                    { "ChkAts", "Установить плагин в American Truck Simulator" },
+                    { "SecShortcuts", "3. ЯРЛЫКИ НА РАБОЧЕМ СТОЛЕ И УДАЛЕНИЕ" },
+                    { "ScBridge", "Ярлык «Overlay Bridge» (телеметрия)" },
+                    { "ScConfig", "Ярлык «Overlay Configurator» (настройки)" },
+                    { "ScUpdate", "Ярлык «Overlay Update» (обновление)" },
+                    { "RemoveCfg", "При удалении также удалить пользовательский config.js" },
+                    { "ReadyInstall", "Готово к установке (язык оверлея: Русский)." },
+                    { "ReadyUninstall", "Режим удаления оверлея. Нажмите «Удалить оверлей» для деинсталляции." },
+                    { "BtnUninstall", "Удалить оверлей" },
+                    { "BtnCancel", "Закрыть" },
+                    { "BtnInstall", "Установить" },
+                    { "MsgDoneTitle", "Установка завершена" },
+                    { "MsgDoneBody", "Установка ETS2 / ATS Stream Overlay Cockpit v" + Program.APP_VER + " завершена!\n\nЯзык: Русский\nПуть: " },
+                    { "MsgErrTitle", "Ошибка" },
+                    { "MsgUninstConfirmTitle", "Подтверждение удаления" },
+                    { "MsgUninstConfirmBody", "Удалить ETS2 / ATS Stream Overlay Cockpit из:\n" },
+                    { "MsgUninstDoneTitle", "Удаление завершено" },
+                    { "MsgUninstDoneBody", "Оверлей успешно удалён." },
+                    { "ProgUnpack", "Распаковка файлов оверлея..." },
+                    { "ProgConfig", "Настройка языка и config.js..." },
+                    { "ProgPlugin", "Установка плагина телеметрии..." },
+                    { "ProgShortcuts", "Создание ярлыков на Рабочем столе..." },
+                    { "ProgRegister", "Регистрация деинсталлятора..." },
+                    { "ProgDone", "Установка завершена!" },
+                    { "ProgUninstFiles", "Удаление файлов оверлея..." },
+                    { "ProgUninstDone", "Удаление завершено." }
+                }
+            },
+            {
+                "en", new Dictionary<string, string>
+                {
+                    { "WindowTitle", "ETS2 / ATS Stream Overlay Cockpit — Setup v" + Program.APP_VER },
+                    { "HeaderSub", "Copyright (c) 2026 FooZzee. All Rights Reserved. Proprietary Freeware License." },
+                    { "SecDir", "1. INSTALLATION FOLDER" },
+                    { "Browse", "Browse..." },
+                    { "SecPlugins", "2. NATIVE SCS SDK 1.16 TELEMETRY PLUGIN (overlayobs_foozzee_telemetry.dll)" },
+                    { "ChkEts2", "Install plugin for Euro Truck Simulator 2" },
+                    { "ChkAts", "Install plugin for American Truck Simulator" },
+                    { "SecShortcuts", "3. DESKTOP SHORTCUTS & UNINSTALL" },
+                    { "ScBridge", "Shortcut «Overlay Bridge» (telemetry)" },
+                    { "ScConfig", "Shortcut «Overlay Configurator» (settings)" },
+                    { "ScUpdate", "Shortcut «Overlay Update» (updater)" },
+                    { "RemoveCfg", "Also remove user config.js during uninstall" },
+                    { "ReadyInstall", "Ready to install (overlay language: English)." },
+                    { "ReadyUninstall", "Uninstall mode. Click «Uninstall Overlay» to remove files." },
+                    { "BtnUninstall", "Uninstall Overlay" },
+                    { "BtnCancel", "Close" },
+                    { "BtnInstall", "Install" },
+                    { "MsgDoneTitle", "Installation Complete" },
+                    { "MsgDoneBody", "ETS2 / ATS Stream Overlay Cockpit v" + Program.APP_VER + " installed successfully!\n\nLanguage: English\nPath: " },
+                    { "MsgErrTitle", "Error" },
+                    { "MsgUninstConfirmTitle", "Confirm Uninstall" },
+                    { "MsgUninstConfirmBody", "Uninstall ETS2 / ATS Stream Overlay Cockpit from:\n" },
+                    { "MsgUninstDoneTitle", "Uninstall Complete" },
+                    { "MsgUninstDoneBody", "Overlay has been removed." },
+                    { "ProgUnpack", "Extracting overlay files..." },
+                    { "ProgConfig", "Configuring language and config.js..." },
+                    { "ProgPlugin", "Installing telemetry plugin..." },
+                    { "ProgShortcuts", "Creating desktop shortcuts..." },
+                    { "ProgRegister", "Registering uninstaller..." },
+                    { "ProgDone", "Installation complete!" },
+                    { "ProgUninstFiles", "Removing overlay files..." },
+                    { "ProgUninstDone", "Uninstall complete." }
+                }
+            }
+        };
+
+        private string T(string key)
+        {
+            Dictionary<string, string> dict;
+            if (I18n.TryGetValue(CurrentLang ?? "ru", out dict) && dict.ContainsKey(key)) return dict[key];
+            return I18n["ru"][key];
+        }
 
         private static BitmapImage LoadEmbeddedLogo()
         {
@@ -246,15 +373,76 @@ namespace StreamOverlayCockpit.Setup
             return clipped;
         }
 
-        public void Initialize(bool isSelfTest, string targetDir, bool isUninstallMode)
+        private static string DetectInitialLanguage(bool isUninstallMode, string langOverride)
+        {
+            if (!string.IsNullOrEmpty(langOverride))
+            {
+                return langOverride.Trim().ToLowerInvariant() == "en" ? "en" : "ru";
+            }
+            if (isUninstallMode)
+            {
+                try
+                {
+                    using (RegistryKey rk = Registry.CurrentUser.OpenSubKey(Program.UNINSTALL_REG_KEY))
+                    {
+                        string regLang = rk != null ? (rk.GetValue("InstallLanguage") as string) : null;
+                        if (!string.IsNullOrEmpty(regLang))
+                        {
+                            return regLang.Trim().ToLowerInvariant() == "en" ? "en" : "ru";
+                        }
+                    }
+                }
+                catch { }
+            }
+            return CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.Equals("ru", StringComparison.OrdinalIgnoreCase) ? "ru" : "en";
+        }
+
+        public void ApplyLanguage(string lang)
+        {
+            CurrentLang = (lang == "en") ? "en" : "ru";
+            if (Window == null) return;
+
+            Window.Title = T("WindowTitle");
+            if (lblSecDir != null) lblSecDir.Text = T("SecDir");
+            if (btnBrowseDir != null) btnBrowseDir.Content = T("Browse");
+            if (lblSecPlugins != null) lblSecPlugins.Text = T("SecPlugins");
+            if (chkEts2 != null) chkEts2.Content = T("ChkEts2");
+            if (chkAts != null) chkAts.Content = T("ChkAts");
+            if (lblSecShortcuts != null) lblSecShortcuts.Text = T("SecShortcuts");
+            if (chkScBridge != null) chkScBridge.Content = T("ScBridge");
+            if (chkScConfig != null) chkScConfig.Content = T("ScConfig");
+            if (chkScUpdate != null) chkScUpdate.Content = T("ScUpdate");
+            if (chkRemoveConfig != null) chkRemoveConfig.Content = T("RemoveCfg");
+            if (btnUninstall != null) btnUninstall.Content = T("BtnUninstall");
+            if (btnCancel != null) btnCancel.Content = T("BtnCancel");
+            if (btnInstall != null) btnInstall.Content = T("BtnInstall");
+            if (txtStatus != null) txtStatus.Text = _isUninstallMode ? T("ReadyUninstall") : T("ReadyInstall");
+
+            var activeBg = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00E5FF"));
+            var activeFg = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#04121F"));
+            var inactiveBg = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1E293B"));
+            var inactiveFg = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#94A3B8"));
+
+            if (btnLangRu != null && btnLangEn != null)
+            {
+                bool isRu = (CurrentLang == "ru");
+                btnLangRu.Background = isRu ? activeBg : inactiveBg;
+                btnLangRu.Foreground = isRu ? activeFg : inactiveFg;
+                btnLangEn.Background = !isRu ? activeBg : inactiveBg;
+                btnLangEn.Foreground = !isRu ? activeFg : inactiveFg;
+            }
+        }
+
+        public void Initialize(bool isSelfTest, string targetDir, bool isUninstallMode, string langOverride = null)
         {
             _isUninstallMode = isUninstallMode;
+            CurrentLang = DetectInitialLanguage(isUninstallMode, langOverride);
 
             string xaml = @"
 <Window xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'
         xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml'
         Title='ETS2 / ATS Stream Overlay Cockpit — Setup v" + Program.APP_VER + @"'
-        Width='660' SizeToContent='Height'
+        Width='690' SizeToContent='Height'
         WindowStartupLocation='CenterScreen'
         ResizeMode='CanMinimize'
         Background='#070A0F'
@@ -280,14 +468,18 @@ namespace StreamOverlayCockpit.Setup
                     <TextBlock Text='ETS2 / ATS STREAM OVERLAY COCKPIT' FontSize='16' FontWeight='Bold' Foreground='#F8FAFC'/>
                     <TextBlock Text='Copyright (c) 2026 FooZzee. All Rights Reserved. Proprietary Freeware License.' FontSize='11' Foreground='#94A3B8'/>
                 </StackPanel>
-                <TextBlock Grid.Column='2' Text='v" + Program.APP_VER + @"' VerticalAlignment='Center' Margin='12,0,0,0' FontSize='12' FontWeight='Bold' Foreground='#00E5FF'/>
+                <StackPanel Grid.Column='2' Orientation='Horizontal' VerticalAlignment='Center' Margin='10,0,0,0'>
+                    <Button x:Name='btnLangRu' Content='Русский' Padding='8,4' Margin='0,0,4,0' FontSize='11' FontWeight='Bold' BorderThickness='0' Cursor='Hand'/>
+                    <Button x:Name='btnLangEn' Content='English' Padding='8,4' Margin='0,0,10,0' FontSize='11' FontWeight='Bold' BorderThickness='0' Cursor='Hand'/>
+                    <TextBlock Text='v" + Program.APP_VER + @"' VerticalAlignment='Center' FontSize='12' FontWeight='Bold' Foreground='#00E5FF'/>
+                </StackPanel>
             </Grid>
         </Border>
 
         <StackPanel Grid.Row='1'>
             <Border Background='#0E131B' BorderBrush='#1E293B' BorderThickness='1' CornerRadius='10' Padding='14' Margin='0,0,0,10'>
                 <StackPanel>
-                    <TextBlock Text='1. ПАПКА УСТАНОВКИ' FontSize='11.5' FontWeight='Bold' Foreground='#00E5FF' Margin='0,0,0,6'/>
+                    <TextBlock x:Name='lblSecDir' Text='1. ПАПКА УСТАНОВКИ' FontSize='11.5' FontWeight='Bold' Foreground='#00E5FF' Margin='0,0,0,6'/>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width='*'/>
@@ -302,7 +494,7 @@ namespace StreamOverlayCockpit.Setup
 
             <Border Background='#0E131B' BorderBrush='#1E293B' BorderThickness='1' CornerRadius='10' Padding='14' Margin='0,0,0,10'>
                 <StackPanel>
-                    <TextBlock Text='2. ПЛАГИН ТЕЛЕМЕТРИИ SCS SDK 1.16 (overlayobs_foozzee_telemetry.dll)' FontSize='11.5' FontWeight='Bold' Foreground='#00E5FF' Margin='0,0,0,6'/>
+                    <TextBlock x:Name='lblSecPlugins' Text='2. ПЛАГИН ТЕЛЕМЕТРИИ SCS SDK 1.16 (overlayobs_foozzee_telemetry.dll)' FontSize='11.5' FontWeight='Bold' Foreground='#00E5FF' Margin='0,0,0,6'/>
                     <CheckBox x:Name='chkEts2' Content='Установить плагин в Euro Truck Simulator 2' Foreground='#F1F5F9' Margin='0,0,0,4'/>
                     <TextBox x:Name='txtEts2Path' Background='#080C14' Foreground='#CBD5E1' BorderBrush='#334155' Padding='6,4' Margin='0,0,0,8'/>
                     <CheckBox x:Name='chkAts' Content='Установить плагин в American Truck Simulator' Foreground='#F1F5F9' Margin='0,0,0,4'/>
@@ -312,7 +504,10 @@ namespace StreamOverlayCockpit.Setup
 
             <Border Background='#0E131B' BorderBrush='#1E293B' BorderThickness='1' CornerRadius='10' Padding='14'>
                 <StackPanel>
-                    <CheckBox x:Name='chkConfigShortcut' Content='Создать ярлык конфигуратора на Рабочем столе (с фирменной иконкой)' Foreground='#F1F5F9' IsChecked='True' Margin='0,0,0,6'/>
+                    <TextBlock x:Name='lblSecShortcuts' Text='3. ЯРЛЫКИ НА РАБОЧЕМ СТОЛЕ И УДАЛЕНИЕ' FontSize='11.5' FontWeight='Bold' Foreground='#00E5FF' Margin='0,0,0,6'/>
+                    <CheckBox x:Name='chkScBridge' Content='Ярлык «Overlay Bridge» (телеметрия)' Foreground='#F1F5F9' IsChecked='True' Margin='0,0,0,4'/>
+                    <CheckBox x:Name='chkScConfig' Content='Ярлык «Overlay Configurator» (настройки)' Foreground='#F1F5F9' IsChecked='True' Margin='0,0,0,4'/>
+                    <CheckBox x:Name='chkScUpdate' Content='Ярлык «Overlay Update» (обновление)' Foreground='#F1F5F9' IsChecked='True' Margin='0,0,0,8'/>
                     <CheckBox x:Name='chkRemoveConfig' Content='При удалении также удалить пользовательский config.js' Foreground='#94A3B8' IsChecked='False'/>
                 </StackPanel>
             </Border>
@@ -342,19 +537,27 @@ namespace StreamOverlayCockpit.Setup
                 imgHeaderLogo.Visibility = Visibility.Visible;
                 RenderOptions.SetBitmapScalingMode(imgHeaderLogo, BitmapScalingMode.HighQuality);
             }
+
+            lblSecDir = (TextBlock)Window.FindName("lblSecDir");
+            lblSecPlugins = (TextBlock)Window.FindName("lblSecPlugins");
+            lblSecShortcuts = (TextBlock)Window.FindName("lblSecShortcuts");
             txtInstallDir = (TextBox)Window.FindName("txtInstallDir");
-            var btnBrowseDir = (Button)Window.FindName("btnBrowseDir");
+            btnBrowseDir = (Button)Window.FindName("btnBrowseDir");
             chkEts2 = (CheckBox)Window.FindName("chkEts2");
             txtEts2Path = (TextBox)Window.FindName("txtEts2Path");
             chkAts = (CheckBox)Window.FindName("chkAts");
             txtAtsPath = (TextBox)Window.FindName("txtAtsPath");
-            chkConfigShortcut = (CheckBox)Window.FindName("chkConfigShortcut");
+            chkScBridge = (CheckBox)Window.FindName("chkScBridge");
+            chkScConfig = (CheckBox)Window.FindName("chkScConfig");
+            chkScUpdate = (CheckBox)Window.FindName("chkScUpdate");
             chkRemoveConfig = (CheckBox)Window.FindName("chkRemoveConfig");
             progressBar = (ProgressBar)Window.FindName("progressBar");
             txtStatus = (TextBlock)Window.FindName("txtStatus");
             btnInstall = (Button)Window.FindName("btnInstall");
             btnUninstall = (Button)Window.FindName("btnUninstall");
             btnCancel = (Button)Window.FindName("btnCancel");
+            btnLangRu = (Button)Window.FindName("btnLangRu");
+            btnLangEn = (Button)Window.FindName("btnLangEn");
 
             txtInstallDir.Text = string.IsNullOrEmpty(targetDir) ? @"C:\Stream_Overlay_Cockpit" : targetDir;
             string ets2Detected = DetectGamePath("Euro Truck Simulator 2");
@@ -364,10 +567,10 @@ namespace StreamOverlayCockpit.Setup
             txtAtsPath.Text = atsDetected ?? "";
             chkAts.IsChecked = !string.IsNullOrEmpty(atsDetected);
 
-            if (isUninstallMode)
-            {
-                txtStatus.Text = "Режим удаления оверлея. Нажмите «Удалить оверлей» для деинсталляции.";
-            }
+            ApplyLanguage(CurrentLang);
+
+            btnLangRu.Click += (s, e) => ApplyLanguage("ru");
+            btnLangEn.Click += (s, e) => ApplyLanguage("en");
 
             btnBrowseDir.Click += (s, e) =>
             {
@@ -393,14 +596,17 @@ namespace StreamOverlayCockpit.Setup
                         dir,
                         chkEts2.IsChecked == true ? txtEts2Path.Text.Trim() : null,
                         chkAts.IsChecked == true ? txtAtsPath.Text.Trim() : null,
-                        chkConfigShortcut.IsChecked == true);
-                    MessageBox.Show("Установка ETS2 / ATS Stream Overlay Cockpit v" + Program.APP_VER + " завершена!\n\nПуть: " + dir, "Установка завершена", MessageBoxButton.OK, MessageBoxImage.Information);
+                        chkScBridge.IsChecked == true,
+                        chkScConfig.IsChecked == true,
+                        chkScUpdate.IsChecked == true,
+                        CurrentLang);
+                    MessageBox.Show(T("MsgDoneBody") + dir, T("MsgDoneTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
                     Window.Close();
                 }
                 catch (Exception ex)
                 {
                     btnInstall.IsEnabled = true;
-                    MessageBox.Show("Ошибка установки:\n\n" + ex.ToString(), "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(ex.ToString(), T("MsgErrTitle"), MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             };
 
@@ -409,7 +615,7 @@ namespace StreamOverlayCockpit.Setup
                 try
                 {
                     string dir = txtInstallDir.Text.Trim();
-                    if (MessageBox.Show("Удалить ETS2 / ATS Stream Overlay Cockpit из:\n" + dir + "?", "Подтверждение удаления", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+                    if (MessageBox.Show(T("MsgUninstConfirmBody") + dir + "?", T("MsgUninstConfirmTitle"), MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
                     {
                         return;
                     }
@@ -418,7 +624,7 @@ namespace StreamOverlayCockpit.Setup
                         txtEts2Path.Text.Trim(),
                         txtAtsPath.Text.Trim(),
                         chkRemoveConfig.IsChecked == true,
-                        removeShortcut: true);
+                        removeShortcuts: true);
 
                     string uninstExe = Path.Combine(dir, "Uninstall.exe");
                     string selfExe = Assembly.GetExecutingAssembly().Location;
@@ -436,12 +642,12 @@ namespace StreamOverlayCockpit.Setup
                         if (File.Exists(uninstExe)) File.Delete(uninstExe);
                         if (Directory.Exists(dir) && Directory.GetFileSystemEntries(dir).Length == 0) Directory.Delete(dir, false);
                     }
-                    MessageBox.Show("Оверлей успешно удалён.", "Удаление завершено", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show(T("MsgUninstDoneBody"), T("MsgUninstDoneTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
                     Window.Close();
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Ошибка удаления:\n\n" + ex.ToString(), "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(ex.ToString(), T("MsgErrTitle"), MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             };
         }
@@ -466,9 +672,57 @@ namespace StreamOverlayCockpit.Setup
             return null;
         }
 
-        public void PerformInstallation(string installDir, string ets2Path, string atsPath, bool createConfigShortcut, string shortcutDirOverride = null, string regSubKey = Program.UNINSTALL_REG_KEY)
+        private static void ApplyLanguageToConfigJs(string installDir, string selectedLang)
         {
-            UpdateProgress(15, "Распаковка файлов оверлея...");
+            string safeLang = (selectedLang == "en") ? "en" : "ru";
+            string cfgPath = Path.Combine(installDir, "config.js");
+            string examplePath = Path.Combine(installDir, "config.example.js");
+
+            if (!File.Exists(cfgPath))
+            {
+                if (!File.Exists(examplePath)) return;
+                string txt = File.ReadAllText(examplePath, Encoding.UTF8);
+                txt = Regex.Replace(txt, @"(?m)^(\s*lang\s*:\s*)(?:'[^']*'|""[^""]*"")", "${1}'" + safeLang + "'");
+                if (safeLang == "en")
+                {
+                    txt = Regex.Replace(txt, @"(?m)^(\s*routeText\s*:\s*)'[^']*'", "${1}'IN TRANSIT // LIVE'");
+                    txt = Regex.Replace(txt, @"(?m)^(\s*cbChannel\s*:\s*)'[^']*'", "${1}'CB 19'");
+                }
+                else
+                {
+                    txt = Regex.Replace(txt, @"(?m)^(\s*routeText\s*:\s*)'[^']*'", "${1}'В РЕЙСЕ // ОНЛАЙН'");
+                    txt = Regex.Replace(txt, @"(?m)^(\s*cbChannel\s*:\s*)'[^']*'", "${1}'РАЦИЯ 19'");
+                }
+                File.WriteAllText(cfgPath, txt, new UTF8Encoding(false));
+            }
+            else
+            {
+                string existing = File.ReadAllText(cfgPath, Encoding.UTF8);
+                if (Regex.IsMatch(existing, @"(?m)^\s*lang\s*:\s*(?:'[^']*'|""[^""]*"")"))
+                {
+                    existing = Regex.Replace(existing, @"(?m)^(\s*lang\s*:\s*)(?:'[^']*'|""[^""]*"")", "${1}'" + safeLang + "'");
+                }
+                else if (Regex.IsMatch(existing, @"window\.OVERLAY_CONFIG\s*=\s*\{"))
+                {
+                    existing = Regex.Replace(existing, @"(window\.OVERLAY_CONFIG\s*=\s*\{)", "$1\r\n  lang: '" + safeLang + "',");
+                }
+                File.WriteAllText(cfgPath, existing, new UTF8Encoding(false));
+            }
+        }
+
+        public void PerformInstallation(
+            string installDir,
+            string ets2Path,
+            string atsPath,
+            bool createBridgeShortcut,
+            bool createConfigShortcut,
+            bool createUpdateShortcut,
+            string selectedLang = "ru",
+            string shortcutDirOverride = null,
+            string regSubKey = Program.UNINSTALL_REG_KEY)
+        {
+            string safeLang = (selectedLang == "en") ? "en" : "ru";
+            UpdateProgress(15, T("ProgUnpack"));
             if (!Directory.Exists(installDir)) Directory.CreateDirectory(installDir);
 
             Assembly asm = Assembly.GetExecutingAssembly();
@@ -488,7 +742,10 @@ namespace StreamOverlayCockpit.Setup
                 }
             }
 
-            UpdateProgress(55, "Установка плагина телеметрии...");
+            UpdateProgress(40, T("ProgConfig"));
+            ApplyLanguageToConfigJs(installDir, safeLang);
+
+            UpdateProgress(60, T("ProgPlugin"));
             string dllSrc = Path.Combine(installDir, "redist", "overlayobs_foozzee_telemetry.dll");
             if (File.Exists(dllSrc))
             {
@@ -501,20 +758,45 @@ namespace StreamOverlayCockpit.Setup
                 }
             }
 
+            UpdateProgress(78, T("ProgShortcuts"));
+            string desk = string.IsNullOrEmpty(shortcutDirOverride)
+                ? Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory)
+                : shortcutDirOverride;
+
+            if (createBridgeShortcut)
+            {
+                string target = File.Exists(Path.Combine(installDir, "start-telemetry.bat"))
+                    ? Path.Combine(installDir, "start-telemetry.bat")
+                    : Path.Combine(installDir, "Start-Overlay.bat");
+                CreateShortcut(
+                    Path.Combine(desk, "ETS2-ATS Overlay Bridge.lnk"),
+                    target,
+                    installDir,
+                    Path.Combine(installDir, "assets", "icons", "cockpit-bridge.ico"),
+                    safeLang == "en" ? "ETS2 / ATS Telemetry Bridge" : "Мост телеметрии ETS2 / ATS");
+            }
             if (createConfigShortcut)
             {
-                UpdateProgress(75, "Создание ярлыка конфигуратора...");
-                string desk = string.IsNullOrEmpty(shortcutDirOverride)
-                    ? Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory)
-                    : shortcutDirOverride;
                 string vbs = Path.Combine(installDir, "Configure-Overlay.vbs");
                 string bat = Path.Combine(installDir, "Configure-Overlay.bat");
-                string target = File.Exists(vbs) ? vbs : bat;
-                string ico = Path.Combine(installDir, "assets", "icons", "cockpit-configurator.ico");
-                CreateShortcut(Path.Combine(desk, "ETS2-ATS Overlay Configurator.lnk"), target, installDir, ico);
+                CreateShortcut(
+                    Path.Combine(desk, "ETS2-ATS Overlay Configurator.lnk"),
+                    File.Exists(vbs) ? vbs : bat,
+                    installDir,
+                    Path.Combine(installDir, "assets", "icons", "cockpit-configurator.ico"),
+                    safeLang == "en" ? "ETS2 / ATS Overlay Configurator" : "Конфигуратор оверлея ETS2 / ATS");
+            }
+            if (createUpdateShortcut)
+            {
+                CreateShortcut(
+                    Path.Combine(desk, "ETS2-ATS Overlay Update.lnk"),
+                    Path.Combine(installDir, "Update-Overlay.bat"),
+                    installDir,
+                    Path.Combine(installDir, "assets", "icons", "cockpit-updater.ico"),
+                    safeLang == "en" ? "ETS2 / ATS Overlay Updater" : "Обновление оверлея ETS2 / ATS");
             }
 
-            UpdateProgress(90, "Регистрация деинсталлятора...");
+            UpdateProgress(92, T("ProgRegister"));
             string uninstExe = Path.Combine(installDir, "Uninstall.exe");
             string selfExe = asm.Location;
             if (!string.IsNullOrEmpty(selfExe) && File.Exists(selfExe))
@@ -531,18 +813,19 @@ namespace StreamOverlayCockpit.Setup
                     rk.SetValue("DisplayVersion", Program.APP_VER);
                     rk.SetValue("Publisher", "FooZzee");
                     rk.SetValue("InstallLocation", installDir);
+                    rk.SetValue("InstallLanguage", safeLang);
                     rk.SetValue("UninstallString", "\"" + uninstExe + "\" --uninstall \"" + installDir + "\"");
                     rk.SetValue("NoModify", 1, RegistryValueKind.DWord);
                     rk.SetValue("NoRepair", 1, RegistryValueKind.DWord);
                 }
             }
 
-            UpdateProgress(100, "Установка завершена!");
+            UpdateProgress(100, T("ProgDone"));
         }
 
-        public void PerformUninstall(string installDir, string ets2Path, string atsPath, bool removeConfig, bool removeShortcut, string shortcutDirOverride = null, string regSubKey = Program.UNINSTALL_REG_KEY)
+        public void PerformUninstall(string installDir, string ets2Path, string atsPath, bool removeConfig, bool removeShortcuts, string shortcutDirOverride = null, string regSubKey = Program.UNINSTALL_REG_KEY)
         {
-            UpdateProgress(20, "Удаление файлов оверлея...");
+            UpdateProgress(20, T("ProgUninstFiles"));
             string[] overlayDirs = { "assets", "scripts", "redist" };
             foreach (string d in overlayDirs)
             {
@@ -569,13 +852,16 @@ namespace StreamOverlayCockpit.Setup
                 if (File.Exists(cfg)) File.Delete(cfg);
             }
 
-            if (removeShortcut)
+            if (removeShortcuts)
             {
                 string desk = string.IsNullOrEmpty(shortcutDirOverride)
                     ? Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory)
                     : shortcutDirOverride;
-                string lnk = Path.Combine(desk, "ETS2-ATS Overlay Configurator.lnk");
-                if (File.Exists(lnk)) File.Delete(lnk);
+                foreach (string lnkName in new[] { "ETS2-ATS Overlay Bridge.lnk", "ETS2-ATS Overlay Configurator.lnk", "ETS2-ATS Overlay Update.lnk" })
+                {
+                    string lnk = Path.Combine(desk, lnkName);
+                    if (File.Exists(lnk)) File.Delete(lnk);
+                }
             }
 
             foreach (string g in new[] { ets2Path, atsPath })
@@ -586,10 +872,10 @@ namespace StreamOverlayCockpit.Setup
             }
 
             try { Registry.CurrentUser.DeleteSubKeyTree(regSubKey, false); } catch { }
-            UpdateProgress(100, "Удаление завершено.");
+            UpdateProgress(100, T("ProgUninstDone"));
         }
 
-        private static void CreateShortcut(string lnkPath, string targetPath, string workDir, string iconPath)
+        private static void CreateShortcut(string lnkPath, string targetPath, string workDir, string iconPath, string description)
         {
             Type shellType = Type.GetTypeFromProgID("WScript.Shell");
             object shell = Activator.CreateInstance(shellType);
@@ -597,7 +883,7 @@ namespace StreamOverlayCockpit.Setup
             Type scType = sc.GetType();
             scType.InvokeMember("TargetPath", BindingFlags.SetProperty, null, sc, new object[] { targetPath });
             scType.InvokeMember("WorkingDirectory", BindingFlags.SetProperty, null, sc, new object[] { workDir });
-            scType.InvokeMember("Description", BindingFlags.SetProperty, null, sc, new object[] { "ETS2 / ATS Stream Overlay Cockpit Configurator" });
+            scType.InvokeMember("Description", BindingFlags.SetProperty, null, sc, new object[] { description });
             if (!string.IsNullOrEmpty(iconPath) && File.Exists(iconPath))
             {
                 scType.InvokeMember("IconLocation", BindingFlags.SetProperty, null, sc, new object[] { iconPath + ",0" });

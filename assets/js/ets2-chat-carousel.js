@@ -7,13 +7,14 @@
   'use strict';
 
   const app = global.ETS2Overlay || (global.ETS2Overlay = {});
+  const isEnLang = () => (app.lang || (app.config && app.config.lang) || 'ru') === 'en';
   const POLL_RATINGS = [
-    { score: 5, cmd: '!5', label: 'отлично', color: '#22c55e' },
-    { score: 4, cmd: '!4', label: 'хорошо', color: '#84cc16' },
-    { score: 3, cmd: '!3', label: 'средне', color: '#eab308' },
-    { score: 2, cmd: '!2', label: 'слабо', color: '#f97316' },
-    { score: 1, cmd: '!1', label: 'не понравилось', color: '#ef4444' },
-    { score: 0, cmd: '!0', label: 'не смотрел', color: '#64748b' }
+    { score: 5, cmd: '!5', labelRu: 'отлично', labelEn: 'excellent', color: '#22c55e' },
+    { score: 4, cmd: '!4', labelRu: 'хорошо', labelEn: 'good', color: '#84cc16' },
+    { score: 3, cmd: '!3', labelRu: 'средне', labelEn: 'average', color: '#eab308' },
+    { score: 2, cmd: '!2', labelRu: 'слабо', labelEn: 'weak', color: '#f97316' },
+    { score: 1, cmd: '!1', labelRu: 'не понравилось', labelEn: 'disliked', color: '#ef4444' },
+    { score: 0, cmd: '!0', labelRu: 'не смотрел', labelEn: "didn't watch", color: '#64748b' }
   ];
 
   const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -39,6 +40,9 @@
   ];
 
   function pluralVotes(n) {
+    if (isEnLang()) {
+      return n === 1 ? `${n} vote` : `${n} votes`;
+    }
     const mod100 = n % 100;
     const mod10 = n % 10;
     if (mod100 >= 11 && mod100 <= 19) return `${n} голосов`;
@@ -115,10 +119,11 @@
   }
 
   function buildPollView(doc) {
+    const en = isEnLang();
     const root = createEl(doc, 'div', 'hud-poll-wrap');
 
     const headBlock = createEl(doc, 'div', 'hud-poll-block hud-poll-block--head');
-    headBlock.appendChild(createEl(doc, 'div', 'hud-poll-kicker', 'ОЦЕНИТЕ ИГРУ'));
+    headBlock.appendChild(createEl(doc, 'div', 'hud-poll-kicker', en ? 'RATE THE GAME' : 'ОЦЕНИТЕ ИГРУ'));
     const gameEl = createEl(doc, 'div', 'hud-poll-game', 'Euro Truck Simulator 2');
     headBlock.appendChild(gameEl);
 
@@ -130,7 +135,7 @@
     avgWrap.appendChild(avgEl);
     avgWrap.appendChild(maxEl);
 
-    const totalEl = createEl(doc, 'span', 'hud-poll-total', '0 голосов');
+    const totalEl = createEl(doc, 'span', 'hud-poll-total', pluralVotes(0));
     summary.appendChild(avgWrap);
     summary.appendChild(totalEl);
     bodyBlock.appendChild(summary);
@@ -140,7 +145,7 @@
     POLL_RATINGS.forEach((item) => {
       const row = createEl(doc, 'div', 'hud-poll-row');
       row.appendChild(createEl(doc, 'span', 'hud-poll-cmd', item.cmd));
-      row.appendChild(createEl(doc, 'span', 'hud-poll-lbl', item.label));
+      row.appendChild(createEl(doc, 'span', 'hud-poll-lbl', en ? item.labelEn : item.labelRu));
 
       const track = createEl(doc, 'div', 'hud-poll-track');
       const fill = createEl(doc, 'div', 'hud-poll-fill');
@@ -155,7 +160,7 @@
     });
     bodyBlock.appendChild(rowsEl);
 
-    const footBlock = createEl(doc, 'div', 'hud-poll-block hud-poll-block--foot', 'Пишите в чат !0 – !5');
+    const footBlock = createEl(doc, 'div', 'hud-poll-block hud-poll-block--foot', en ? 'Write in chat !0 – !5' : 'Пишите в чат !0 – !5');
 
     root.appendChild(headBlock);
     root.appendChild(bodyBlock);
@@ -165,8 +170,9 @@
   }
 
   function buildSocialsView(doc, cfg) {
+    const en = isEnLang();
     const card = createEl(doc, 'div', 'hud-socials-card');
-    card.appendChild(createEl(doc, 'div', 'hud-socials-title', 'Не забудь подписаться:'));
+    card.appendChild(createEl(doc, 'div', 'hud-socials-title', en ? "Don't forget to follow:" : 'Не забудь подписаться:'));
 
     const list = createEl(doc, 'div', 'hud-socials-list');
     resolveSocialItems(cfg).forEach((item) => {
