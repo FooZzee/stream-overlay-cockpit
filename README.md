@@ -28,18 +28,11 @@
 
 **ETS2 / ATS Stream Overlay Cockpit** is an ultra-low latency, broadcast-grade telemetry HUD engineered for live streamers on Twitch, YouTube, and Kick. Featuring an opaque cockpit dashboard console, symmetrical webcam dock (`4:3` or `16:9`), modular chat dock, and animated stream alert notifications, it delivers full telemetry insight while maintaining 60 fps rendering efficiency in OBS Studio.
 
-### 🖼️ Visual Previews
+### Interface Layouts & Shortcuts
 
-#### Standard 4:3 Webcam Frame (Default)
-![ETS2 / ATS Stream Overlay Cockpit (4:3)](./assets/preview/preview-cockpit-4x3.png)
-
-#### Widescreen 16:9 Webcam Frame
-![ETS2 / ATS Stream Overlay Cockpit (16:9)](./assets/preview/preview-cockpit-16x9.png)
-
-#### Desktop App Shortcuts
-| Telemetry Bridge Shortcut | Auto-Updater Shortcut |
-| :---: | :---: |
-| ![Telemetry Bridge](./assets/preview/preview-bridge.png) | ![Auto-Updater](./assets/preview/preview-updater.png) |
+- **Standard 4:3 Webcam Frame (Default):** `325×244 px` (1080p) / `397×298 px` (1440p) aligned with the cockpit cluster height.
+- **Widescreen 16:9 Webcam Frame:** `384×216 px` (1080p) / `464×261 px` (1440p) aligned with the top cluster edge.
+- **Desktop App Shortcuts:** `Overlay Bridge` (telemetry), `Overlay Configurator` (HUD settings), and `Overlay Update` (auto-updater).
 
 ---
 
@@ -130,18 +123,11 @@ Before going live, start the **«ETS2-ATS Overlay Bridge»** shortcut on your De
 
 **ETS2 / ATS Stream Overlay Cockpit** — сверхбыстрый и высокоточный телеметрический HUD-оверлей, спроектированный специально для прямых трансляций симуляторов на Twitch, YouTube и Kick. Оснащён непрозрачной консолью приборной панели тягача («торпедой»), симметричной рамкой веб-камеры (`4:3` или `16:9`), игровым доком чата и анимированными стрим-оповещениями, обеспечивая стабильные 60 fps в OBS Studio.
 
-### 🖼️ Скриншоты интерфейса
+### Варианты макета и ярлыки
 
-#### Стандартная рамка 4:3 (по умолчанию)
-![ETS2 / ATS Stream Overlay Cockpit (4:3)](./assets/preview/preview-cockpit-4x3.png)
-
-#### Широкоформатная рамка 16:9
-![ETS2 / ATS Stream Overlay Cockpit (16:9)](./assets/preview/preview-cockpit-16x9.png)
-
-#### Фирменные ярлыки Рабочего стола
-| Мост телеметрии | Автообновление |
-| :---: | :---: |
-| ![Telemetry Bridge](./assets/preview/preview-bridge.png) | ![Auto-Updater](./assets/preview/preview-updater.png) |
+- **Стандартная рамка 4:3 (по умолчанию):** `325×244 px` (1080p) / `397×298 px` (1440p) по высоте приборной панели.
+- **Широкоформатная рамка 16:9:** `384×216 px` (1080p) / `464×261 px` (1440p) по верхнему краю панели.
+- **Ярлыки Рабочего стола:** `Overlay Bridge` (телеметрия), `Overlay Configurator` (настройки HUD) и `Overlay Update` (автообновление).
 
 ---
 

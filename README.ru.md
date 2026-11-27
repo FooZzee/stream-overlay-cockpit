@@ -13,18 +13,11 @@
 
 ---
 
-## 🖼️ Скриншоты интерфейса
+## Варианты макета и ярлыки
 
-### Стандартная рамка 4:3 (по умолчанию)
-![ETS2 / ATS Stream Overlay Cockpit (4:3)](./assets/preview/preview-cockpit-4x3.png)
-
-### Широкоформатная рамка 16:9
-![ETS2 / ATS Stream Overlay Cockpit (16:9)](./assets/preview/preview-cockpit-16x9.png)
-
-### Фирменные ярлыки Рабочего стола
-| Мост телеметрии | Автообновление |
-| :---: | :---: |
-| ![Telemetry Bridge](./assets/preview/preview-bridge.png) | ![Auto-Updater](./assets/preview/preview-updater.png) |
+- **Стандартная рамка 4:3 (по умолчанию):** `325×244 px` (1080p) / `397×298 px` (1440p) по высоте приборной панели.
+- **Широкоформатная рамка 16:9:** `384×216 px` (1080p) / `464×261 px` (1440p) по верхнему краю панели.
+- **Ярлыки Рабочего стола:** `Overlay Bridge` (телеметрия), `Overlay Configurator` (настройки HUD) и `Overlay Update` (автообновление).
 
 ---
 
